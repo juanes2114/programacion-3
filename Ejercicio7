@@ -1,0 +1,33 @@
+import java.util.Random;
+public class Ejercicio7 {
+    public static void main(String[] args) {
+        int[] A = new int[10];
+        int[] pares = new int[10];
+        int[] impares = new int[10];
+        int cp = 0, ci = 0;
+
+        Random r = new Random();
+
+        for(int i=0; i<10; i++){
+            A[i] = r.nextInt(100); // números entre 0 y 99
+        }
+        
+        for(int i=0; i<10; i++){
+            if(A[i] % 2 == 0){
+                pares[cp] = A[i];
+                cp++;
+            } else {
+                impares[ci] = A[i];
+                ci++;
+            }
+        }
+
+        // Mostrar resultados
+        System.out.println("Arreglo original:");
+        for(int i=0; i<10; i++) System.out.print(A[i] + " ");
+        System.out.println("\nPares:");
+        for(int i=0; i<cp; i++) System.out.print(pares[i] + " ");
+        System.out.println("\nImpares:");
+        for(int i=0; i<ci; i++) System.out.print(impares[i] + " ");
+    }
+}
