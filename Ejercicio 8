@@ -1,0 +1,34 @@
+import java.util.Random;
+
+public class Ejercicio8 {
+    public static void main(String[] args) {
+        int n = 30;
+        int[] A = new int[n];
+        Random rand = new Random();
+
+        for (int i = 0; i < n; i++) {
+            A[i] = rand.nextInt(50) + 1;
+        }
+
+        System.out.println("Arreglo generado (30 números):");
+        for (int val : A) System.out.print(val + " ");
+        System.out.println();
+
+        int mayor = A[0];
+        int menor = A[0];
+        for (int i = 1; i < n; i++) {
+            if (A[i] > mayor) mayor = A[i];
+            if (A[i] < menor) menor = A[i];
+        }
+
+        int vecesMayor = 0;
+        int vecesMenor = 0;
+        for (int i = 0; i < n; i++) {
+            if (A[i] == mayor) vecesMayor++;
+            if (A[i] == menor) vecesMenor++;
+        }
+
+        System.out.println("\nMayor: " + mayor + " (se repite " + vecesMayor + " veces)");
+        System.out.println("Menor: " + menor + " (se repite " + vecesMenor + " veces)");
+    }
+}
