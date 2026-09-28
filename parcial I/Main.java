@@ -123,3 +123,46 @@ public class Main {
             System.out.println("No hay espacio para mas peliculas.");
         }
     }
+
+    static void menuAsignacion() {
+        if (teatro.getCantidadPeliculas() == 0) {
+            System.out.println("Primero debe registrar peliculas.");
+            return;
+        }
+
+        int numSala = leerSala("Sala a programar (1-3, 0 para volver): ");
+        if (numSala == 0) {
+            return;
+        }
+        Sala sala = teatro.getSala(numSala);
+
+        System.out.println("\nFunciones de la sala " + numSala + ":");
+        for (int i = 0; i < 3; i++) {
+            Funcion f = sala.getFuncion(i);
+            if (f == null) {
+                System.out.println((i + 1) + ". " + Sala.HORARIOS[i] + " -> (libre)");
+            } else {
+                System.out.println((i + 1) + ". " + Sala.HORARIOS[i] + " -> " + f.getPelicula().getNombre());
+            }
+        }
+
+        int franja = leerFranja();
+        if (franja == -1) {
+            return;
+        }
+
+        System.out.println("\nPeliculas:");
+        teatro.listarPeliculas();
+        int idx = leerEntero("Numero de pelicula: ") - 1;
+        if (idx < 0 || idx >= teatro.getCantidadPeliculas()) {
+            System.out.println("Pelicula inexistente.");
+            return;
+        }
+
+        String error = sala.asignarPelicula(franja, teatro.getPelicula(idx));
+        if (error == null) {
+            System.out.println("Funcion asignada.");
+        } else {
+            System.out.println("Error: " + error);
+        }
+    }
