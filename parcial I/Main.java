@@ -198,3 +198,67 @@ public class Main {
             venderSillas(sala, franja);
         }
     }
+  
+    static void venderSillas(Sala sala, int franja) {
+        Funcion funcion = sala.getFuncion(franja);
+
+        sala.mostrarSillas(franja);
+        System.out.println("Sillas disponibles: " + funcion.getDisponibles());
+        if (funcion.getDisponibles() == 0) {
+            System.out.println("Funcion agotada.");
+            return;
+        }
+
+        System.out.print("Sillas a comprar separadas por coma (ej: A3, B8, D9): ");
+        String[] partes = sc.nextLine().split(",");
+
+        int total = 0;
+        int contGeneral = 0, contPreferencial = 0, cont3D = 0;
+
+        for (int i = 0; i < partes.length; i++) {
+            String s = partes[i].trim().toUpperCase();
+            if (s.length() < 2) {
+                System.out.println("\"" + s + "\": formato invalido.");
+                continue;
+            }
+
+            int fila = s.charAt(0) - 'A';
+            int col;
+            try {
+                col = Integer.parseInt(s.substring(1)) - 1;
+            } catch (NumberFormatException e) {
+                System.out.println("\"" + s + "\": formato invalido.");
+                continue;
+            }
+
+            if (!sala.existeSilla(fila, col)) {
+                System.out.println(s + ": la silla no existe en esta sala.");
+            } else if (!funcion.comprar(fila, col)) {
+                System.out.println(s + ": la silla NO esta disponible.");
+            } else {
+                total += sala.precio(fila);
+                if (sala.es3D()) {
+                    cont3D++;
+                } else if (sala.esPreferencial(fila)) {
+                    contPreferencial++;
+                } else {
+                    contGeneral++;
+                }
+                System.out.println(s + ": comprada.");
+            }
+        }
+
+        System.out.println("\n--- RESUMEN ---");
+        if (contGeneral > 0) {
+            System.out.println("General: " + contGeneral + " x " + dinero(8000));
+        }
+        if (contPreferencial > 0) {
+            System.out.println("Preferencial: " + contPreferencial + " x " + dinero(12000));
+        }
+        if (cont3D > 0) {
+            System.out.println("Sala 3D: " + cont3D + " x " + dinero(10000));
+        }
+        System.out.println("TOTAL A PAGAR: " + dinero(total));
+        System.out.println("Sillas disponibles ahora: " + funcion.getDisponibles());
+    }
+}
