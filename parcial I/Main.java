@@ -81,3 +81,45 @@ public class Main {
         }
         return f - 1;
     }
+  
+    static void menuPeliculas() {
+        System.out.println("\n--- PELICULAS REGISTRADAS ---");
+        teatro.listarPeliculas();
+
+        System.out.print("Desea anadir una pelicula? (s/n): ");
+        String resp = sc.nextLine().trim();
+        if (!resp.equalsIgnoreCase("s")) {
+            return;
+        }
+
+        String nombre = leerTexto("Nombre: ");
+        String idioma = leerTexto("Idioma: ");
+
+        String tipo;
+        while (true) {
+            tipo = leerTexto("Tipo (35mm o 3D): ");
+            if (tipo.equalsIgnoreCase("35mm")) {
+                tipo = "35mm";
+                break;
+            }
+            if (tipo.equalsIgnoreCase("3D")) {
+                tipo = "3D";
+                break;
+            }
+            System.out.println("Tipo invalido.");
+        }
+
+        int duracion;
+        do {
+            duracion = leerEntero("Duracion (minutos): ");
+            if (duracion <= 0) {
+                System.out.println("La duracion debe ser positiva.");
+            }
+        } while (duracion <= 0);
+
+        if (teatro.agregarPelicula(new Pelicula(nombre, idioma, tipo, duracion))) {
+            System.out.println("Pelicula registrada.");
+        } else {
+            System.out.println("No hay espacio para mas peliculas.");
+        }
+    }
