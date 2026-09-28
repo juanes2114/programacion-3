@@ -58,3 +58,26 @@ public class Main {
         } while (s.isEmpty());
         return s;
     }
+    static String dinero(int valor) {
+        return "$" + String.format("%,d", valor).replace(',', '.');
+    }
+
+    static int leerSala(String mensaje) {
+        int n;
+        do {
+            n = leerEntero(mensaje);
+            if (n < 0 || n > 3) {
+                System.out.println("Sala inexistente.");
+            }
+        } while (n < 0 || n > 3);
+        return n;
+    }
+
+    static int leerFranja() {
+        int f = leerEntero("Franja (1-3): ");
+        if (f < 1 || f > 3) {
+            System.out.println("Franja invalida.");
+            return -1;
+        }
+        return f - 1;
+    }
