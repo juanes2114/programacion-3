@@ -166,3 +166,35 @@ public class Main {
             System.out.println("Error: " + error);
         }
     }
+
+    static void menuVentas() {
+        while (true) {
+            int numSala = leerSala("\nSala (1-3, 0 para salir de ventas): ");
+            if (numSala == 0) {
+                return;
+            }
+            Sala sala = teatro.getSala(numSala);
+
+            System.out.println("\nFunciones de la sala " + numSala + ":");
+            for (int i = 0; i < 3; i++) {
+                Funcion f = sala.getFuncion(i);
+                if (f == null) {
+                    System.out.println((i + 1) + ". " + Sala.HORARIOS[i] + " -> sin pelicula asignada");
+                } else {
+                    System.out.println((i + 1) + ". " + Sala.HORARIOS[i] + " -> "
+                            + f.getPelicula().getNombre() + " (" + f.getDisponibles()
+                            + " sillas disponibles)");
+                }
+            }
+
+            int franja = leerFranja();
+            if (franja == -1) {
+                continue;
+            }
+            if (sala.getFuncion(franja) == null) {
+                System.out.println("Esa franja no tiene pelicula asignada.");
+                continue;
+            }
+            venderSillas(sala, franja);
+        }
+    }
