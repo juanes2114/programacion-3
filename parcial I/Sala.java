@@ -31,23 +31,22 @@ public class Sala {
         return funciones[franja];
     }
 
-    public int columnasEnFila(int fila) {
-        if (fila >= 6) {
-            return 9;
-        }
-        return 12;
-    }
-
     public int totalSillas() {
         int total = 6 * 12;
         if (preferencial) {
-            total += 2 * 9;
+            total += 2 * 10;
         }
         return total;
     }
 
     public boolean existeSilla(int fila, int columna) {
-        return fila >= 0 && fila < filas && columna >= 0 && columna < columnasEnFila(fila);
+        if (fila < 0 || fila >= filas || columna < 0 || columna >= 12) {
+            return false;
+        }
+        if (esPreferencial(fila) && (columna == 0 || columna == 11)) {
+            return false;
+        }
+        return true;
     }
 
     public boolean esPreferencial(int fila) {
@@ -91,11 +90,10 @@ public class Sala {
                 System.out.println("    ------------------------");
             }
             System.out.print("  " + (char) ('A' + i) + "  ");
-            if (esPreferencial(i)) {
-                System.out.print("      ");
-            }
-            for (int j = 0; j < columnasEnFila(i); j++) {
-                if (f.estaOcupada(i, j)) {
+            for (int j = 0; j < 12; j++) {
+                if (!existeSilla(i, j)) {
+                    System.out.print("  ");
+                } else if (f.estaOcupada(i, j)) {
                     System.out.print("X ");
                 } else {
                     System.out.print("_ ");
