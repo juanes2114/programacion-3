@@ -45,3 +45,64 @@ public class Sala {
         }
         return total;
     }
+
+    public boolean existeSilla(int fila, int columna) {
+        return fila >= 0 && fila < filas && columna >= 0 && columna < columnasEnFila(fila);
+    }
+
+    public boolean esPreferencial(int fila) {
+        return fila >= 6;
+    }
+
+    public int precio(int fila) {
+        if (es3D) {
+            return 10000;
+        }
+        if (esPreferencial(fila)) {
+            return 12000;
+        }
+        return 8000;
+    }
+
+    public String asignarPelicula(int franja, Pelicula p) {
+        if (funciones[franja] != null) {
+            return "La sala " + numero + " ya tiene una pelicula en esa franja.";
+        }
+        if (es3D && !p.es3D()) {
+            return "La sala 3 solo proyecta peliculas 3D.";
+        }
+        if (!es3D && p.es3D()) {
+            return "Las salas 1 y 2 no proyectan peliculas 3D.";
+        }
+        funciones[franja] = new Funcion(p, filas, 12, totalSillas());
+        return null;
+    }
+
+    public void mostrarSillas(int franja) {
+        Funcion f = funciones[franja];
+        System.out.print("\n     ");
+        for (int c = 1; c <= 12; c++) {
+            System.out.printf("%-2d", c);
+        }
+        System.out.println();
+
+        for (int i = filas - 1; i >= 0; i--) {
+            if (preferencial && i == 5) {
+                System.out.println("    ------------------------");
+            }
+            System.out.print("  " + (char) ('A' + i) + "  ");
+            if (esPreferencial(i)) {
+                System.out.print("      ");
+            }
+            for (int j = 0; j < columnasEnFila(i); j++) {
+                if (f.estaOcupada(i, j)) {
+                    System.out.print("X ");
+                } else {
+                    System.out.print("_ ");
+                }
+            }
+            System.out.println();
+        }
+        System.out.println("      ==== PANTALLA ====\n");
+    }
+}
