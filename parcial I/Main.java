@@ -33,3 +33,28 @@ public class Main {
         } while (opcion != 4);
 
         sc.close();
+}
+
+    static int leerEntero(String mensaje) {
+        while (true) {
+            System.out.print(mensaje);
+            String linea = sc.nextLine().trim();
+            try {
+                return Integer.parseInt(linea);
+            } catch (NumberFormatException e) {
+                System.out.println("Debe ingresar un numero entero.");
+            }
+        }
+    }
+
+    static String leerTexto(String mensaje) {
+        String s;
+        do {
+            System.out.print(mensaje);
+            s = sc.nextLine().trim();
+            if (s.isEmpty()) {
+                System.out.println("No puede estar vacio.");
+            }
+        } while (s.isEmpty());
+        return s;
+    }
