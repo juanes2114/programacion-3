@@ -1,0 +1,29 @@
+import java.util.ArrayList;
+import java.util.List;
+ 
+/**
+ * Ejemplo 1: métodos para AGREGAR elementos a una lista.
+ */
+public class Ejemplo1_Agregar {
+ 
+    public static void main(String[] args) {
+        List<String> lista = new ArrayList<>();
+ 
+        lista.add("A");                       // agrega al final
+        lista.add("B");
+        System.out.println("add(e):            " + lista);   // [A, B]
+ 
+        lista.add(1, "X");                    // inserta en la posición 1
+        System.out.println("add(index, e):     " + lista);   // [A, X, B]
+ 
+        lista.addAll(List.of("C", "D"));      // agrega una colección al final
+        System.out.println("addAll(c):         " + lista);   // [A, X, B, C, D]
+ 
+        lista.addAll(0, List.of("Z"));        // agrega una colección desde la posición 0
+        System.out.println("addAll(index, c):  " + lista);   // [Z, A, X, B, C, D]
+ 
+        lista.add(null);                      // ArrayList permite null
+        lista.add("A");                       // y duplicados
+        System.out.println("null y duplicado:  " + lista);   // [Z, A, X, B, C, D, null, A]
+    }
+}
