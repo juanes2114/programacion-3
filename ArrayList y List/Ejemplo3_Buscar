@@ -1,0 +1,28 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+// Ejemplo 3: CONSULTAR y BUSCAR.
+public class Ejemplo3_Buscar {
+
+    public static void main(String[] args) {
+
+        // "pera" está en las posiciones 0 y 2
+        List<String> frutas = new ArrayList<>(Arrays.asList("pera", "uva", "pera", "kiwi"));
+
+        System.out.println("size():            " + frutas.size());                // cantidad de elementos: 4
+        System.out.println("isEmpty():         " + frutas.isEmpty());             // está vacía? false
+        System.out.println("contains(uva):     " + frutas.contains("uva"));       // existe el elemento? true
+        System.out.println("containsAll:       " + frutas.containsAll(Arrays.asList("uva", "kiwi")));   // existen todos? true
+        System.out.println("indexOf(pera):     " + frutas.indexOf("pera"));       // primera posición: 0
+        System.out.println("lastIndexOf(pera): " + frutas.lastIndexOf("pera"));   // última posición: 2
+        System.out.println("indexOf(mango):    " + frutas.indexOf("mango"));      // -1 = no existe
+
+        // equals: dos listas son iguales si tienen los mismos elementos EN EL MISMO ORDEN
+        List<Integer> l1 = Arrays.asList(1, 2, 3);
+        List<Integer> l2 = Arrays.asList(1, 2, 3);
+        List<Integer> l3 = Arrays.asList(3, 2, 1);
+        System.out.println("equals (mismo orden):   " + l1.equals(l2));   // true
+        System.out.println("equals (otro orden):    " + l1.equals(l3));   // false
+    }
+}
