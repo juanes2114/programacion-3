@@ -1,1 +1,29 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+// Ejemplo 4: subList. Obtiene un pedazo de la lista (es una VISTA, no una copia).
+public class Ejemplo1_Agregar {
+
+    public static void main(String[] args) {
+
+        List<Integer> a = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5));
+
+        // subList(desde, hasta): incluye "desde" y NO incluye "hasta" (posiciones 1, 2 y 3)
+        List<Integer> parte = a.subList(1, 4);
+        System.out.println("subList(1, 4):     " + parte);   // [2, 3, 4]
+
+        // Como es una vista, si cambias la sublista también cambia la original
+        parte.set(0, 99);
+        System.out.println("original cambió:   " + a);   // [1, 99, 3, 4, 5]
+
+        // Para una copia independiente, se crea un ArrayList nuevo
+        List<Integer> copia = new ArrayList<>(a.subList(1, 4));
+        copia.set(0, -1);   // solo cambia la copia
+        System.out.println("copia:             " + copia + " | original: " + a);
+
+        // borrar un rango (posiciones 0 y 1) limpiando la sublista
+        a.subList(0, 2).clear();
+        System.out.println("borrar rango 0-2:  " + a);   // [3, 4, 5]
+    }
+}
