@@ -1,1 +1,93 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.Spliterator;
 
+// Ejemplo 5: formas de RECORRER un ArrayList.
+public class Ejemplo5_Recorrer {
+
+    public static void main(String[] args) {
+
+        // Declaramos la variable como ArrayList (no List) para usar sus métodos propios
+        ArrayList<String> lista = new ArrayList<>(Arrays.asList("A", "B", "C", "D"));
+
+        // 1. for clásico: size() = cantidad de elementos, get(i) = elemento de la posición i
+        System.out.print("for clásico:   ");
+        for (int i = 0; i < lista.size(); i++) {
+            System.out.print(lista.get(i) + " ");
+        }
+
+        // 2. for-each: por dentro usa iterator() (por eso también es "fail-fast", ver el punto 8)
+        System.out.print("\nfor-each:      ");
+        for (String s : lista) {
+            System.out.print(s + " ");
+        }
+
+        // 3. forEach(Consumer): método propio de ArrayList; ejecuta la acción para cada elemento, en orden
+        System.out.print("\nforEach:       ");
+        lista.forEach(s -> System.out.print(s + " "));
+
+        // 4. iterator(): hasNext() = ¿quedan elementos? | next() = siguiente | remove() = quita el último visto
+        //    Es la forma segura de eliminar mientras se recorre
+        Iterator<String> it = lista.iterator();
+        while (it.hasNext()) {
+            if (it.next().equals("B")) {
+                it.remove();
+            }
+        }
+        System.out.println("\niterator (sin B): " + lista);   // [A, C, D]
+
+        // 5. listIterator(): recorre hacia adelante y permite reemplazar (set) e insertar (add)
+        ListIterator<String> li = lista.listIterator();
+        while (li.hasNext()) {
+            String s = li.next();
+            if (s.equals("C")) {
+                li.set("C2");      // reemplaza el último elemento visto
+                li.add("NUEVO");   // inserta justo después
+            }
+        }
+        System.out.println("listIterator:     " + lista);   // [A, C2, NUEVO, D]
+
+        // 6. listIterator(int index): empieza en la posición indicada.
+        //    Con lista.size() empieza AL FINAL, y con hasPrevious()/previous() se recorre al revés
+        System.out.print("al revés:         ");
+        ListIterator<String> atras = lista.listIterator(lista.size());
+        while (atras.hasPrevious()) {
+            System.out.print(atras.previous() + " ");   // D NUEVO C2 A
+        }
+
+        // 7. spliterator(): iterador de Java 8. Informa cuántos elementos tiene y los recorre con forEachRemaining
+        Spliterator<String> sp = lista.spliterator();
+        System.out.println("\nspliterator, cantidad: " + sp.getExactSizeIfKnown());   // 4
+        System.out.print("spliterator:      ");
+        sp.forEachRemaining(s -> System.out.print(s + " "));
+        System.out.println();
+
+        // removeIf(condición): otra forma segura de quitar elementos sin escribir el recorrido
+        lista.removeIf(s -> s.equals("NUEVO"));
+        System.out.println("removeIf:         " + lista);   // [A, C2, D]
+
+        // 8. Iteradores fail-fast (documentación de ArrayList):
+        //    Si la lista cambia de ESTRUCTURA (se agregan o quitan elementos) mientras se recorre,
+        //    y el cambio no lo hace el propio iterador, se lanza ConcurrentModificationException.
+
+        //    set() NO cambia la estructura (solo reemplaza un valor), así que aquí no hay error
+        for (String s : lista) {
+            lista.set(1, "c2");
+        }
+        System.out.println("set dentro del for-each: " + lista);   // [A, c2, D]
+
+        //    remove() SÍ cambia la estructura, y lanza el error
+        try {
+            for (String s : lista) {
+                if (s.equals("A")) {
+                    lista.remove(s);
+                }
+            }
+        } catch (ConcurrentModificationException e) {
+            System.out.println("remove dentro del for-each: ConcurrentModificationException");
+        }
+    }
+}
