@@ -1,1 +1,72 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;   // métodos útiles para listas (reverse, swap, shuffle, max...)
+import java.util.Comparator;    // define CÓMO se comparan dos elementos
 
+// Ejemplo 6: ORDENAR un ArrayList.
+public class Ejemplo6_Ordenar {
+
+    public static void main(String[] args) {
+
+        ArrayList<Integer> numeros = new ArrayList<>(Arrays.asList(5, 2, 8, 1, 9, 2));
+
+        // sort(Comparator): método propio de ArrayList; ordena la propia lista.
+        // Con null usa el orden natural (números de menor a mayor, textos alfabético)
+        numeros.sort(null);
+        System.out.println("sort(null):          " + numeros);   // [1, 2, 2, 5, 8, 9]
+
+        // reverseOrder() es un Comparator que invierte el orden natural: de mayor a menor
+        numeros.sort(Collections.reverseOrder());
+        System.out.println("sort(reverseOrder):  " + numeros);   // [9, 8, 5, 2, 2, 1]
+
+        // Collections.sort(lista): otra forma de ordenar de menor a mayor
+        Collections.sort(numeros);
+        System.out.println("Collections.sort:    " + numeros);   // [1, 2, 2, 5, 8, 9]
+
+        // reverse: le da la vuelta a la lista (no ordena)
+        Collections.reverse(numeros);
+        System.out.println("Collections.reverse: " + numeros);   // [9, 8, 5, 2, 2, 1]
+
+        // swap: intercambia dos posiciones
+        Collections.swap(numeros, 0, 1);
+        System.out.println("Collections.swap:    " + numeros);   // [8, 9, 5, 2, 2, 1]
+
+        // shuffle: mezcla al azar (cambia en cada ejecución)
+        Collections.shuffle(numeros);
+        System.out.println("Collections.shuffle: " + numeros);
+
+        // max = mayor, min = menor, frequency = cuántas veces aparece un valor
+        System.out.println("max: " + Collections.max(numeros)
+                + " | min: " + Collections.min(numeros)
+                + " | veces que aparece el 2: " + Collections.frequency(numeros, 2));
+
+        // Ordenar solo una PARTE: subList devuelve una vista de las posiciones 0, 1 y 2
+        // (la 3 no entra). Al ordenar la vista, se ordena esa parte de la lista original
+        ArrayList<Integer> parcial = new ArrayList<>(Arrays.asList(9, 7, 5, 3, 1));
+        parcial.subList(0, 3).sort(null);
+        System.out.println("subList(0, 3).sort:  " + parcial);   // [5, 7, 9, 3, 1]
+
+        // Orden propio: primero por cantidad de letras y, si empatan, alfabético
+        ArrayList<String> palabras = new ArrayList<>(Arrays.asList("kiwi", "pera", "uva", "manzana", "fresa"));
+        palabras.sort(new Comparator<String>() {
+            @Override
+            public int compare(String a, String b) {
+                // Devuelve negativo si "a" va antes, positivo si va después, 0 si son iguales
+                if (a.length() != b.length()) {
+                    return Integer.compare(a.length(), b.length());   // compara por longitud
+                }
+                return a.compareTo(b);   // empate: compara alfabéticamente
+            }
+        });
+        System.out.println("por longitud:        " + palabras);   // [uva, kiwi, pera, fresa, manzana]
+
+        ArrayList<Object> mezcla = new ArrayList<>();
+        mezcla.add(10);
+        mezcla.add("hola");
+        try {
+            mezcla.sort(null);
+        } catch (ClassCastException e) {
+            System.out.println("sort con tipos mezclados: ClassCastException");
+        }
+    }
+}
