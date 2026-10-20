@@ -1,0 +1,45 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+// Ejemplo 3: ELIMINAR elementos.
+public class Ejemplo3_Eliminar {
+
+    public static void main(String[] args) {
+
+        // "B" está repetida (posiciones 1 y 3)
+        List<String> lista = new ArrayList<>(Arrays.asList("A", "B", "C", "B", "D"));
+
+        // remove(pos): elimina por POSICIÓN y devuelve el elemento eliminado
+        String eliminado = lista.remove(0);
+        System.out.println("remove(0):         devolvió " + eliminado + " -> " + lista);   // devolvió A -> [B, C, B, D]
+
+        // remove(objeto): elimina por VALOR, solo la primera coincidencia. Devuelve true/false
+        boolean encontrado = lista.remove("B");
+        System.out.println("remove(\"B\"):       " + encontrado + " -> " + lista);   // true -> [C, B, D]
+
+        // La trampa con Integer: un int se toma como POSICIÓN
+        List<Integer> numeros = new ArrayList<>(Arrays.asList(10, 20, 30, 2));
+        numeros.remove(2);                   // quita la posición 2 (el 30), no el valor 2
+        System.out.println("remove(2):         " + numeros);   // [10, 20, 2]
+        numeros.remove(Integer.valueOf(2));  // con Integer.valueOf se quita el VALOR 2
+        System.out.println("remove(Integer 2): " + numeros);   // [10, 20]
+
+        List<Integer> a = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6));
+
+        a.removeAll(Arrays.asList(2, 4));   // removeAll: quita los que estén en la otra lista
+        System.out.println("removeAll:         " + a);   // [1, 3, 5, 6]
+
+        a.retainAll(Arrays.asList(1, 5, 9));   // retainAll: deja SOLO los que estén en la otra lista
+        System.out.println("retainAll:         " + a);   // [1, 5]
+
+        List<Integer> b = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6));
+
+        // removeIf: quita los que cumplan la condición (n % 2 == 0 -> números pares)
+        b.removeIf(n -> n % 2 == 0);
+        System.out.println("removeIf (pares):  " + b);   // [1, 3, 5]
+
+        b.clear();   // clear: vacía la lista
+        System.out.println("clear:             " + b + " vacía? " + b.isEmpty());   // [] vacía? true
+    }
+}
