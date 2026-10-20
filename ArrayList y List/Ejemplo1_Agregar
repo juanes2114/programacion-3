@@ -1,28 +1,30 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
- 
-//Ejemplo 1: métodos para AGREGAR elementos a una lista.
+import java.util.ArrayList;   // clase que crea la lista
+import java.util.Arrays;      // para crear listas rápidas con Arrays.asList
+import java.util.List;        // tipo (interfaz) de la lista
+
+// Ejemplo 1: métodos para AGREGAR elementos.
 public class Ejemplo1_Agregar {
- 
+
     public static void main(String[] args) {
+
+        // Lista vacía de textos. <String> = solo acepta textos.
         List<String> lista = new ArrayList<>();
- 
-        lista.add("A");                        // agrega al final
+
+        lista.add("A");   // add(e): agrega al final
         lista.add("B");
         System.out.println("add(e):            " + lista);   // [A, B]
- 
-        lista.add(1, "X");                     // inserta en la posición 1
+
+        lista.add(1, "X");   // add(pos, e): inserta en la posición 1 y corre los demás a la derecha
         System.out.println("add(index, e):     " + lista);   // [A, X, B]
- 
-        lista.addAll(Arrays.asList("C", "D")); // agrega una colección al final
+
+        lista.addAll(Arrays.asList("C", "D"));   // addAll(c): agrega varios elementos al final
         System.out.println("addAll(c):         " + lista);   // [A, X, B, C, D]
- 
-        lista.addAll(0, Arrays.asList("Z"));   // agrega una colección desde la posición 0
+
+        lista.addAll(0, Arrays.asList("Z"));   // addAll(pos, c): agrega varios desde la posición 0
         System.out.println("addAll(index, c):  " + lista);   // [Z, A, X, B, C, D]
- 
-        lista.add(null);                       // ArrayList permite null
-        lista.add("A");                        // y duplicados
+
+        lista.add(null);   // ArrayList permite null
+        lista.add("A");    // y elementos repetidos
         System.out.println("null y duplicado:  " + lista);   // [Z, A, X, B, C, D, null, A]
     }
 }
