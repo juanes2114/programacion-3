@@ -2,14 +2,14 @@ package modelo;
 
 import estructuras.ListaEnlazada;
 
-/** Estudiante con notas asociadas a códigos de materia e historial académico. */
+/** Estudiante con notas por semestre e historial de materias cursadas. */
 public class Estudiante extends Persona {
     private int semestre;
     private Double[][] notas;
     private String[][] codigosMateriasNotas;
     private ListaEnlazada<Materia> historialMaterias;
 
-    /** Crea un estudiante con una matriz vacía para diez semestres. */
+    /** Crea un estudiante con espacio para diez semestres y veinte materias por semestre. */
     public Estudiante(String nombre, String id, String email, int semestre) {
         super(nombre, id, email);
         this.semestre = semestre;
@@ -50,6 +50,7 @@ public class Estudiante extends Persona {
         int indice = 0;
         while (indice < historialMaterias.tamano()) {
             Materia materia = historialMaterias.obtener(indice);
+
             if (materia.getCodigo().equals(codigoMateria)) {
                 return true;
             }
@@ -59,16 +60,22 @@ public class Estudiante extends Persona {
         return false;
     }
 
-    /** Registra o reemplaza la nota y agrega la materia al historial. */
+    /**
+     * Registra una nota o reemplaza la anterior para esa materia y semestre.
+     *
+     * @throws IllegalArgumentException si el semestre, la materia, la nota
+     *                                  o la cantidad de materias no son válidos
+     */
     public void registrarNota(int semestre, Materia materia, double nota) {
         validarSemestre(semestre);
 
         if (materia == null) {
             throw new IllegalArgumentException("La materia no puede ser null.");
         }
-        if (Double.isNaN(nota) || Double.isInfinite(nota)
-                || nota < 0.0 || nota > 5.0) {
-            throw new IllegalArgumentException("La nota debe estar entre 0.0 y 5.0.");
+        if (nota < 0.0 || nota > 5.0) {
+            throw new IllegalArgumentException(
+                    "La nota debe estar entre 0.0 y 5.0."
+            );
         }
 
         int fila = semestre - 1;
@@ -77,12 +84,14 @@ public class Estudiante extends Persona {
 
         if (columna == -1) {
             columna = buscarColumnaLibre(fila);
+
             if (columna == -1) {
                 throw new IllegalArgumentException(
                         "El semestre " + semestre
                                 + " ya tiene 20 materias registradas."
                 );
             }
+
             codigosMateriasNotas[fila][columna] = codigo;
         }
 
@@ -90,7 +99,7 @@ public class Estudiante extends Persona {
         agregarAlHistorial(materia);
     }
 
-    /** Indica si existe alguna nota aprobada para el código indicado. */
+    /** Indica si existe una nota de 3.0 o más para el código indicado. */
     public boolean haAprobado(String codigoMateria) {
         if (codigoMateria == null) {
             return false;
@@ -99,6 +108,7 @@ public class Estudiante extends Persona {
         int fila = 0;
         while (fila < notas.length) {
             int columna = 0;
+
             while (columna < notas[fila].length) {
                 if (codigoMateria.equals(codigosMateriasNotas[fila][columna])
                         && notas[fila][columna] != null
@@ -113,7 +123,7 @@ public class Estudiante extends Persona {
         return false;
     }
 
-    /** Devuelve la nota del semestre indicado o null si no hay nota. */
+    /** Devuelve la nota registrada o null si no hay una nota para esa materia. */
     public Double consultarNota(int semestre, String codigoMateria) {
         validarSemestre(semestre);
 
@@ -125,11 +135,12 @@ public class Estudiante extends Persona {
         if (columna == -1) {
             return null;
         }
+
         return notas[semestre - 1][columna];
     }
 
     /**
-     * Deshace el registro: restaura notaAnterior o quita la nota si es null.
+     * Restaura la nota anterior. Si notaAnterior es null, elimina la nota.
      */
     public void deshacerRegistroNota(
             int semestre,
@@ -142,10 +153,7 @@ public class Estudiante extends Persona {
             throw new IllegalArgumentException("La materia no puede ser null.");
         }
         if (notaAnterior != null
-                && (Double.isNaN(notaAnterior)
-                || Double.isInfinite(notaAnterior)
-                || notaAnterior < 0.0
-                || notaAnterior > 5.0)) {
+                && (notaAnterior < 0.0 || notaAnterior > 5.0)) {
             throw new IllegalArgumentException(
                     "La nota anterior debe estar entre 0.0 y 5.0."
             );
@@ -172,38 +180,290 @@ public class Estudiante extends Persona {
         }
     }
 
+    /** Calcula el promedio simple de las notas de un semestre. */
+    public double calcularPromedioSemestre(int semestre) {
+        validarSemestre(semestre);
+
+        int fila = semestre - 1;
+        double suma = 0.0;
+        int cantidad = 0;
+        int columna = 0;
+
+        while (columna < notas[fila].length) {
+            if (notas[fila][columna] != null) {
+                suma += notas[fila][columna];
+                cantidad++;
+            }
+            columna++;
+        }
+
+        if (cantidad == 0) {
+            return 0.0;
+        }
+
+        return suma / cantidad;
+    }
+
+    /** Calcula el promedio de todas las notas registradas. */
+    public double calcularPromedioAcumulado() {
+        double suma = 0.0;
+        int cantidad = 0;
+        int fila = 0;
+
+        while (fila < notas.length) {
+            int columna = 0;
+
+            while (columna < notas[fila].length) {
+                if (notas[fila][columna] != null) {
+                    suma += notas[fila][columna];
+                    cantidad++;
+                }
+                columna++;
+            }
+            fila++;
+        }
+
+        if (cantidad == 0) {
+            return 0.0;
+        }
+
+        return suma / cantidad;
+    }
+
+    /** Cuenta todas las notas registradas. */
+    public int contarNotas() {
+        int cantidad = 0;
+        int fila = 0;
+
+        while (fila < notas.length) {
+            int columna = 0;
+
+            while (columna < notas[fila].length) {
+                if (notas[fila][columna] != null) {
+                    cantidad++;
+                }
+                columna++;
+            }
+            fila++;
+        }
+
+        return cantidad;
+    }
+
+    /** Cuenta las notas registradas en un semestre. */
+    public int contarNotasSemestre(int semestre) {
+        validarSemestre(semestre);
+
+        int cantidad = 0;
+        int fila = semestre - 1;
+        int columna = 0;
+
+        while (columna < notas[fila].length) {
+            if (notas[fila][columna] != null) {
+                cantidad++;
+            }
+            columna++;
+        }
+
+        return cantidad;
+    }
+
+    /** Cuenta las notas aprobadas, es decir, de 3.0 o más. */
+    public int contarAprobadas() {
+        int cantidad = 0;
+        int fila = 0;
+
+        while (fila < notas.length) {
+            int columna = 0;
+
+            while (columna < notas[fila].length) {
+                if (notas[fila][columna] != null
+                        && notas[fila][columna] >= 3.0) {
+                    cantidad++;
+                }
+                columna++;
+            }
+            fila++;
+        }
+
+        return cantidad;
+    }
+
+    /** Cuenta las notas reprobadas, es decir, menores que 3.0. */
+    public int contarReprobadas() {
+        int cantidad = 0;
+        int fila = 0;
+
+        while (fila < notas.length) {
+            int columna = 0;
+
+            while (columna < notas[fila].length) {
+                if (notas[fila][columna] != null
+                        && notas[fila][columna] < 3.0) {
+                    cantidad++;
+                }
+                columna++;
+            }
+            fila++;
+        }
+
+        return cantidad;
+    }
+
+    /** Genera el reporte académico completo sin imprimirlo. */
+    public String generarReporteAcademico() {
+        String reporte = "--- REPORTE ACADEMICO ---\n";
+        reporte += "Estudiante: " + getNombre()
+                + " (ID: " + getId() + ")\n";
+
+        int semestreActual = 1;
+        while (semestreActual <= 10) {
+            int cantidad = contarNotasSemestre(semestreActual);
+
+            if (cantidad > 0) {
+                reporte += "\nSemestre " + semestreActual + ":\n";
+                int fila = semestreActual - 1;
+                int columna = 0;
+
+                while (columna < notas[fila].length) {
+                    if (notas[fila][columna] != null) {
+                        reporte += "  "
+                                + codigosMateriasNotas[fila][columna]
+                                + ": "
+                                + String.format("%.1f", notas[fila][columna])
+                                + "\n";
+                    }
+                    columna++;
+                }
+
+                reporte += "  Promedio: "
+                        + String.format(
+                                "%.2f",
+                                calcularPromedioSemestre(semestreActual)
+                        )
+                        + "\n";
+            }
+
+            semestreActual++;
+        }
+
+        double promedio = calcularPromedioAcumulado();
+
+        if (contarNotas() == 0) {
+            reporte += "\nPromedio acumulado: 0.0 (sin notas aun)";
+        } else {
+            reporte += "\n=== RESUMEN ===\n";
+            reporte += "Promedio acumulado: "
+                    + String.format("%.2f", promedio) + "\n";
+            reporte += "Materias aprobadas: " + contarAprobadas() + "\n";
+            reporte += "Materias reprobadas: " + contarReprobadas();
+        }
+
+        return reporte;
+    }
+
+    /** Genera el reporte de notas de un semestre sin imprimirlo. */
+    public String generarReporteSemestre(int semestre) {
+        validarSemestre(semestre);
+
+        String reporte = "--- REPORTE SEMESTRE "
+                + semestre + " ---\n";
+        int cantidad = contarNotasSemestre(semestre);
+
+        if (cantidad == 0) {
+            reporte += "No hay notas registradas en este semestre.";
+            return reporte;
+        }
+
+        int fila = semestre - 1;
+        int columna = 0;
+
+        while (columna < notas[fila].length) {
+            if (notas[fila][columna] != null) {
+                reporte += codigosMateriasNotas[fila][columna]
+                        + ": "
+                        + String.format("%.1f", notas[fila][columna])
+                        + "\n";
+            }
+            columna++;
+        }
+
+        reporte += "Promedio: "
+                + String.format("%.2f", calcularPromedioSemestre(semestre));
+
+        return reporte;
+    }
+
+    /** Genera el reporte de todas las notas reprobadas sin imprimirlo. */
+    public String generarReporteReprobadas() {
+        String reporte = "--- MATERIAS REPROBADAS ---\n";
+        int cantidad = contarReprobadas();
+
+        if (cantidad == 0) {
+            return reporte + "No hay materias reprobadas.";
+        }
+
+        int fila = 0;
+        while (fila < notas.length) {
+            int columna = 0;
+
+            while (columna < notas[fila].length) {
+                if (notas[fila][columna] != null
+                        && notas[fila][columna] < 3.0) {
+                    reporte += "Semestre " + (fila + 1)
+                            + ": " + codigosMateriasNotas[fila][columna]
+                            + " - "
+                            + String.format("%.1f", notas[fila][columna])
+                            + "\n";
+                }
+                columna++;
+            }
+            fila++;
+        }
+
+        return reporte;
+    }
+
     private void validarSemestre(int semestre) {
         if (semestre < 1 || semestre > 10) {
-            throw new IllegalArgumentException("El semestre debe estar entre 1 y 10.");
+            throw new IllegalArgumentException(
+                    "El semestre debe estar entre 1 y 10."
+            );
         }
     }
 
     private int buscarColumna(int fila, String codigo) {
         int columna = 0;
+
         while (columna < codigosMateriasNotas[fila].length) {
             if (codigo.equals(codigosMateriasNotas[fila][columna])) {
                 return columna;
             }
             columna++;
         }
+
         return -1;
     }
 
     private int buscarColumnaLibre(int fila) {
         int columna = 0;
+
         while (columna < codigosMateriasNotas[fila].length) {
             if (codigosMateriasNotas[fila][columna] == null) {
                 return columna;
             }
             columna++;
         }
+
         return -1;
     }
 
     private boolean tieneNotaRegistrada(String codigo) {
         int fila = 0;
+
         while (fila < codigosMateriasNotas.length) {
             int columna = 0;
+
             while (columna < codigosMateriasNotas[fila].length) {
                 if (codigo.equals(codigosMateriasNotas[fila][columna])
                         && notas[fila][columna] != null) {
@@ -213,13 +473,16 @@ public class Estudiante extends Persona {
             }
             fila++;
         }
+
         return false;
     }
 
     private void quitarDelHistorial(String codigo) {
         int indice = 0;
+
         while (indice < historialMaterias.tamano()) {
             Materia materia = historialMaterias.obtener(indice);
+
             if (materia.getCodigo().equals(codigo)) {
                 historialMaterias.eliminar(materia);
                 return;
@@ -228,7 +491,7 @@ public class Estudiante extends Persona {
         }
     }
 
-    /** Imprime información del estudiante y el tamaño de su historial. */
+    /** Muestra los datos básicos y el tamaño del historial. */
     @Override
     public void mostrarInformacion() {
         System.out.println("Estudiante");
@@ -238,6 +501,7 @@ public class Estudiante extends Persona {
         System.out.println("Semestre: " + semestre);
         System.out.println("Matriz de notas: " + notas.length
                 + " semestres x " + notas[0].length + " materias");
-        System.out.println("Materias en el historial: " + historialMaterias.tamano());
+        System.out.println("Materias en el historial: "
+                + historialMaterias.tamano());
     }
 }
