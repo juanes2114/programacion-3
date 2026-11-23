@@ -64,7 +64,7 @@ public class SistemaAcademico {
         return estudiante;
     }
 
-    /** Imprime los estudiantes; el orden depende de HashMap. */
+    /** Imprime los estudiantes; el orden depende del HashMap. */
     public void listarEstudiantes() {
         Object[] valores = estudiantes.values().toArray();
         int indice = 0;
@@ -80,7 +80,7 @@ public class SistemaAcademico {
         }
     }
 
-    /** Elimina al estudiante del mapa, de inscripciones y de esperas. */
+    /** Elimina al estudiante del mapa, las inscripciones y las esperas. */
     public Estudiante eliminarEstudiante(String id)
             throws EstudianteNoEncontradoException {
         Estudiante estudiante = buscarEstudiante(id);
@@ -109,16 +109,18 @@ public class SistemaAcademico {
         int indice = 0;
         while (indice < valoresMaterias.length) {
             Materia materia = (Materia) valoresMaterias[indice];
+
             if (materia.estaInscrito(estudiante)) {
                 resultado.agregarAlFinal(materia);
             }
+
             indice++;
         }
 
         return resultado;
     }
 
-    /** Crea una materia si código, cupos y créditos son válidos. */
+    /** Crea una materia si el código no existe y cupos y créditos son positivos. */
     public Materia crearMateria(
             String codigo,
             String nombre,
@@ -180,7 +182,8 @@ public class SistemaAcademico {
     /** Imprime los prerrequisitos o informa que no hay ninguno. */
     public void mostrarPrerrequisitos(String codigoMateria) {
         Materia materia = buscarMateria(codigoMateria);
-        ListaEnlazada<Materia> prerrequisitos = materia.getPrerrequisitos();
+        ListaEnlazada<Materia> prerrequisitos =
+                materia.getPrerrequisitos();
 
         if (prerrequisitos.estaVacia()) {
             System.out.println(codigoMateria + " no tiene prerrequisitos.");
@@ -188,12 +191,14 @@ public class SistemaAcademico {
         }
 
         System.out.println("Prerrequisitos de " + codigoMateria + ":");
-        int indice = 0;
 
+        int indice = 0;
         while (indice < prerrequisitos.tamano()) {
             Materia prerrequisito = prerrequisitos.obtener(indice);
-            System.out.println("- " + prerrequisito.getCodigo()
-                    + " (" + prerrequisito.getNombre() + ")");
+            System.out.println(
+                    "- " + prerrequisito.getCodigo()
+                            + " (" + prerrequisito.getNombre() + ")"
+            );
             indice++;
         }
     }
@@ -217,9 +222,10 @@ public class SistemaAcademico {
         }
 
         String faltantes = "";
-        ListaEnlazada<Materia> prerrequisitos = materia.getPrerrequisitos();
-        int indice = 0;
+        ListaEnlazada<Materia> prerrequisitos =
+                materia.getPrerrequisitos();
 
+        int indice = 0;
         while (indice < prerrequisitos.tamano()) {
             Materia prerrequisito = prerrequisitos.obtener(indice);
 
@@ -248,7 +254,7 @@ public class SistemaAcademico {
         }
     }
 
-    /** Cancela una inscripción o una espera y asigna el cupo disponible. */
+    /** Cancela una inscripción o espera y asigna el cupo a la primera persona en espera. */
     public Estudiante cancelarInscripcion(
             String idEstudiante,
             String codigoMateria
@@ -266,7 +272,7 @@ public class SistemaAcademico {
                     return siguiente;
                 } catch (ColaDeEsperaVaciaException excepcion) {
                     throw new IllegalStateException(
-                            "No se encontró el estudiante que estaba en espera."
+                            "La cola quedó vacía antes de asignar el cupo."
                     );
                 } catch (CupoLlenoException excepcion) {
                     throw new IllegalStateException(
@@ -287,13 +293,33 @@ public class SistemaAcademico {
         );
     }
 
-    /** Imprime la espera en orden de atención. */
+    /** Imprime la cola de espera en orden de atención. */
     public void mostrarColaEspera(String codigoMateria) {
         Materia materia = buscarMateria(codigoMateria);
-        ColaEstudiantesImpresor.imprimir(materia);
+
+        if (materia.cantidadEnEspera() == 0) {
+            System.out.println("La cola de espera está vacía.");
+            return;
+        }
+
+        int indice = 0;
+        while (indice < materia.cantidadEnEspera()) {
+            Estudiante estudiante =
+                    materia.getColaEspera().obtener(indice);
+
+            System.out.println(
+                    "Posicion " + (indice + 1) + ": "
+                            + estudiante.getNombre()
+            );
+            indice++;
+        }
+
+        System.out.println(
+                "Total en espera: " + materia.cantidadEnEspera()
+        );
     }
 
-    /** Crea un aula con nombre único y capacidad positiva. */
+    /** Crea un aula si el nombre no existe y la capacidad es positiva. */
     public Aula crearAula(String nombre, int capacidad) {
         if (aulas.containsKey(nombre)) {
             throw new IllegalArgumentException(
@@ -311,7 +337,7 @@ public class SistemaAcademico {
         return aula;
     }
 
-    /** Busca un aula por nombre. */
+    /** Busca un aula por su nombre. */
     public Aula buscarAula(String nombre) {
         Aula aula = aulas.get(nombre);
 
@@ -324,7 +350,7 @@ public class SistemaAcademico {
         return aula;
     }
 
-    /** Imprime las aulas en orden de nombre. */
+    /** Imprime las aulas en el orden de sus nombres. */
     public void listarAulas() {
         Object[] valores = aulas.values().toArray();
         int indice = 0;
@@ -336,7 +362,7 @@ public class SistemaAcademico {
         }
     }
 
-    /** Comprueba que la materia exista y reserva el horario en el aula. */
+    /** Comprueba que la materia exista y delega la reserva al aula. */
     public void reservarHorario(
             String nombreAula,
             int dia,
@@ -345,34 +371,32 @@ public class SistemaAcademico {
             String codigoMateria
     ) throws HorarioConflictivoException {
         buscarMateria(codigoMateria);
-        buscarAula(nombreAula).reservar(
-                dia,
-                hora,
-                duracion,
-                codigoMateria
-        );
+        Aula aula = buscarAula(nombreAula);
+        aula.reservar(dia, hora, duracion, codigoMateria);
     }
 
-    /** Delega la liberación del horario en el aula. */
+    /** Delega la liberación del horario al aula. */
     public void liberarHorario(
             String nombreAula,
             int dia,
             int hora,
             int duracion
     ) {
-        buscarAula(nombreAula).liberar(dia, hora, duracion);
+        Aula aula = buscarAula(nombreAula);
+        aula.liberar(dia, hora, duracion);
     }
 
-    /** Delega la consulta de disponibilidad en el aula. */
+    /** Delega la consulta de disponibilidad al aula. */
     public boolean consultarDisponibilidad(
             String nombreAula,
             int dia,
             int hora
     ) {
-        return buscarAula(nombreAula).consultarDisponibilidad(dia, hora);
+        Aula aula = buscarAula(nombreAula);
+        return aula.consultarDisponibilidad(dia, hora);
     }
 
-    /** Agrega una facultad al arreglo de cinco posiciones. */
+    /** Agrega una facultad al arreglo de tamaño fijo. */
     public void agregarFacultad(Facultad facultad) {
         if (cantidadFacultades == facultades.length) {
             throw new IllegalStateException(
@@ -389,7 +413,7 @@ public class SistemaAcademico {
         cantidadFacultades++;
     }
 
-    /** Imprime las facultades agregadas. */
+    /** Imprime las facultades guardadas. */
     public void listarFacultades() {
         int indice = 0;
         while (indice < cantidadFacultades) {
@@ -399,7 +423,7 @@ public class SistemaAcademico {
     }
 
     /**
-     * Recorre los prerrequisitos con una pila y guarda códigos ya revisados.
+     * Revisa los prerrequisitos con una pila y guarda los códigos visitados.
      * Devuelve true si desde inicio se puede llegar al código buscado.
      */
     private boolean dependeDe(Materia inicio, String codigoBuscado) {
@@ -419,8 +443,8 @@ public class SistemaAcademico {
 
                 ListaEnlazada<Materia> prerrequisitos =
                         actual.getPrerrequisitos();
-                int indice = 0;
 
+                int indice = 0;
                 while (indice < prerrequisitos.tamano()) {
                     pendientes.push(prerrequisitos.obtener(indice));
                     indice++;
@@ -429,30 +453,5 @@ public class SistemaAcademico {
         }
 
         return false;
-    }
-
-    /** Auxiliar interno para imprimir la cola sin usar Iterable ni Iterator. */
-    private static class ColaEstudiantesImpresor {
-        private static void imprimir(Materia materia) {
-            if (materia.cantidadEnEspera() == 0) {
-                System.out.println("La cola de espera está vacía.");
-                return;
-            }
-
-            int indice = 0;
-            while (indice < materia.cantidadEnEspera()) {
-                Estudiante estudiante =
-                        materia.getColaEspera().obtener(indice);
-                System.out.println(
-                        "Posicion " + (indice + 1) + ": "
-                                + estudiante.getNombre()
-                );
-                indice++;
-            }
-
-            System.out.println(
-                    "Total en espera: " + materia.cantidadEnEspera()
-            );
-        }
     }
 }
