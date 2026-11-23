@@ -1,81 +1,118 @@
-import estructuras.Cola;
-import estructuras.ListaEnlazada;
-import estructuras.Pila;
+import excepciones.ColaDeEsperaVaciaException;
+import excepciones.CupoLlenoException;
+import modelo.Estudiante;
+import modelo.Materia;
+import modelo.Persona;
+import modelo.Profesor;
 
-/** Pruebas breves de las estructuras enlazadas propias. */
+/** Pruebas de materias, cupos, notas e herencia. */
 public class Main {
     public static void main(String[] args) {
-        probarLista();
-        probarPila();
-        probarCola();
+        probarMateriasYPrerrequisitos();
+        probarInscripcionYCola();
+        probarRegistroDeNota();
+        probarPolimorfismo();
     }
 
-    private static void probarLista() {
-        System.out.println("=== Prueba de lista enlazada ===");
+    private static void probarMateriasYPrerrequisitos() {
+        System.out.println("=== Materias y prerrequisitos ===");
 
-        ListaEnlazada<String> lista = new ListaEnlazada<>();
-        lista.agregarAlFinal("Algoritmos");
-        lista.agregarAlFinal("Estructuras");
-        lista.agregarAlInicio("Programación");
+        Materia calculo101 = new Materia("CALC101", "Cálculo I", 2, 4);
+        Materia calculo102 = new Materia("CALC102", "Cálculo II", 2, 4);
+        calculo102.agregarPrerrequisito(calculo101);
 
-        System.out.println("Contenido: " + lista);
-        System.out.println("Elemento en índice 1: " + lista.obtener(1));
-        System.out.println("¿Contiene Estructuras?: " + lista.contiene("Estructuras"));
-        System.out.println("¿Eliminó Algoritmos?: " + lista.eliminar("Algoritmos"));
-        System.out.println("Lista final: " + lista);
-        System.out.println("Recorrido con for-each:");
+        System.out.println(calculo101);
+        System.out.println(calculo102);
+        System.out.println("Prerrequisito de CALC102: "
+                + calculo102.getPrerrequisitos().obtener(0).getCodigo());
+    }
 
-        for (String materia : lista) {
-            System.out.println("- " + materia);
+    private static void probarInscripcionYCola() {
+        System.out.println();
+        System.out.println("=== Inscripción y cola de espera ===");
+
+        Materia materia = new Materia("CALC101", "Cálculo I", 2, 4);
+        Estudiante ana = new Estudiante("Ana Torres", "A001", "ana@uni.edu", 1);
+        Estudiante luis = new Estudiante("Luis Pérez", "A002", "luis@uni.edu", 1);
+        Estudiante marta = new Estudiante("Marta Díaz", "A003", "marta@uni.edu", 1);
+
+        try {
+            materia.agregarInscrito(ana);
+            materia.agregarInscrito(luis);
+            System.out.println("Inscritos: " + materia.getInscritos().tamano());
+
+            try {
+                materia.agregarInscrito(marta);
+            } catch (CupoLlenoException excepcion) {
+                System.out.println("Excepción capturada: " + excepcion.getMessage());
+                materia.encolarEnEspera(marta);
+            }
+
+            System.out.println("Cola de espera: " + materia.getColaEspera());
+
+            materia.quitarInscrito(ana);
+            Estudiante siguiente = materia.siguienteEnEspera();
+            materia.agregarInscrito(siguiente);
+            System.out.println("Entra desde la espera: " + siguiente.getNombre());
+            System.out.println("Inscritos ahora: " + materia.getInscritos().tamano());
+
+            try {
+                materia.siguienteEnEspera();
+            } catch (ColaDeEsperaVaciaException excepcion) {
+                System.out.println("Excepción capturada: " + excepcion.getMessage());
+            }
+        } catch (CupoLlenoException excepcion) {
+            System.out.println("No se pudo completar la inscripción: " + excepcion.getMessage());
+        } catch (ColaDeEsperaVaciaException excepcion) {
+            System.out.println("No se pudo atender la espera: " + excepcion.getMessage());
         }
     }
 
-    private static void probarPila() {
+    private static void probarRegistroDeNota() {
         System.out.println();
-        System.out.println("=== Prueba de pila ===");
+        System.out.println("=== Registro de nota e historial ===");
 
-        Pila<Integer> pila = new Pila<>();
-        pila.push(10);
-        pila.push(20);
-        pila.push(30);
+        Estudiante estudiante = new Estudiante(
+                "Ana Torres",
+                "A001",
+                "ana@uni.edu",
+                1
+        );
+        Materia materia = new Materia("CALC101", "Cálculo I", 2, 4);
 
-        System.out.println("Contenido (tope a fondo): " + pila);
-        System.out.println("Elemento retirado: " + pila.pop());
-        System.out.println("Nuevo tope: " + pila.peek());
-        System.out.println("Contenido actual: " + pila);
+        estudiante.registrarNota(1, materia, 4.2);
 
-        pila.pop();
-        pila.pop();
-
-        try {
-            pila.pop();
-        } catch (IllegalStateException excepcion) {
-            System.out.println("Error esperado: " + excepcion.getMessage());
-        }
+        System.out.println("Nota en CALC101: "
+                + estudiante.consultarNota(1, "CALC101"));
+        System.out.println("¿Aprobó CALC101?: "
+                + estudiante.haAprobado("CALC101"));
+        System.out.println("¿Ha cursado CALC101?: "
+                + estudiante.haCursado("CALC101"));
+        System.out.println("Historial: " + estudiante.getHistorialMaterias());
     }
 
-    private static void probarCola() {
+    private static void probarPolimorfismo() {
         System.out.println();
-        System.out.println("=== Prueba de cola ===");
+        System.out.println("=== Polimorfismo ===");
 
-        Cola<String> cola = new Cola<>();
-        cola.encolar("Ana");
-        cola.encolar("Luis");
-        cola.encolar("Marta");
-        cola.encolar("Carlos");
+        Persona[] personas = new Persona[2];
+        personas[0] = new Estudiante(
+                "Camila Rojas",
+                "A004",
+                "camila@uni.edu",
+                2
+        );
+        personas[1] = new Profesor(
+                "Carlos Gómez",
+                "P001",
+                "carlos@uni.edu",
+                "Matemáticas",
+                4200000
+        );
 
-        System.out.println("Contenido (frente a final): " + cola);
-        System.out.println("Atendido: " + cola.desencolar());
-        System.out.println("¿Eliminó Marta?: " + cola.eliminar("Marta"));
-        System.out.println("Contenido actual: " + cola);
-
-        cola.desencolar();
-        cola.desencolar();
-
-        try {
-            cola.desencolar();
-        } catch (IllegalStateException excepcion) {
-            System.out.println("Error esperado: " + excepcion.getMessage());
+        for (Persona persona : personas) {
+            persona.mostrarInformacion();
+            System.out.println();
         }
     }
 }
