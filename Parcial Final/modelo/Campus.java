@@ -2,18 +2,14 @@ package modelo;
 
 import estructuras.Pila;
 
-/** Campus representado por un grafo no dirigido ponderado mediante una matriz. */
+/** Campus representado por un grafo no dirigido y una matriz de distancias. */
 public class Campus {
     private String[] nombres;
     private int[][] distancias;
 
-    /**
-     * Crea un campus sin conexiones.
-     *
-     * @param nombresEdificios nombres de al menos cinco edificios
-     * @throws IllegalArgumentException si hay menos de cinco, nombres inválidos
-     *                                  o repetidos sin distinguir mayúsculas
-     */
+    private static final String[] DIAS_NO_USADO = {};
+
+    /** Crea un campus sin conexiones y valida los nombres de edificios. */
     public Campus(String[] nombresEdificios) {
         if (nombresEdificios == null || nombresEdificios.length < 5) {
             throw new IllegalArgumentException(
@@ -23,7 +19,8 @@ public class Campus {
 
         nombres = new String[nombresEdificios.length];
 
-        for (int i = 0; i < nombresEdificios.length; i++) {
+        int i = 0;
+        while (i < nombresEdificios.length) {
             String nombre = nombresEdificios[i];
 
             if (nombre == null || nombre.trim().isEmpty()) {
@@ -34,24 +31,25 @@ public class Campus {
 
             nombres[i] = nombre.trim();
 
-            for (int j = 0; j < i; j++) {
+            int j = 0;
+            while (j < i) {
                 if (nombres[i].equalsIgnoreCase(nombres[j])) {
                     throw new IllegalArgumentException(
                             "Nombre de edificio repetido: " + nombres[i]
                     );
                 }
+                j++;
             }
+            i++;
         }
 
         distancias = new int[nombres.length][nombres.length];
     }
 
-    /** Devuelve la cantidad de edificios del campus. */
     public int getCantidadEdificios() {
         return nombres.length;
     }
 
-    /** Devuelve el nombre del edificio ubicado en el índice indicado. */
     public String getNombre(int indice) {
         if (indice < 0 || indice >= nombres.length) {
             throw new IllegalArgumentException(
@@ -61,29 +59,22 @@ public class Campus {
         return nombres[indice];
     }
 
-    /**
-     * Busca un edificio sin distinguir mayúsculas.
-     *
-     * @throws IllegalArgumentException si el edificio no existe
-     */
+    /** Busca un edificio ignorando mayúsculas y minúsculas. */
     public int indiceDe(String nombre) {
         if (nombre != null) {
-            for (int i = 0; i < nombres.length; i++) {
+            int i = 0;
+            while (i < nombres.length) {
                 if (nombres[i].equalsIgnoreCase(nombre.trim())) {
                     return i;
                 }
+                i++;
             }
         }
 
         throw new IllegalArgumentException("No existe el edificio: " + nombre);
     }
 
-    /**
-     * Agrega o reemplaza una conexión bidireccional entre dos edificios.
-     *
-     * @throws IllegalArgumentException si algún edificio no existe, son iguales
-     *                                  o la distancia no es positiva
-     */
+    /** Agrega o reemplaza la conexión en ambas direcciones. */
     public void agregarConexion(String origen, String destino, int metros) {
         int indiceOrigen = indiceDe(origen);
         int indiceDestino = indiceDe(destino);
@@ -103,96 +94,102 @@ public class Campus {
         distancias[indiceDestino][indiceOrigen] = metros;
     }
 
-    /** Imprime cada edificio con su índice. */
+    /** Imprime los edificios con sus índices. */
     public void mostrarEdificios() {
-        for (int i = 0; i < nombres.length; i++) {
+        int i = 0;
+        while (i < nombres.length) {
             System.out.println(i + ": " + nombres[i]);
+            i++;
         }
     }
 
-    /** Imprime la matriz de distancias, usando cero cuando no hay conexión directa. */
+    /** Imprime la matriz de distancias. */
     public void mostrarMatriz() {
         System.out.printf("%15s", "");
-        for (String nombre : nombres) {
-            System.out.printf("%15s", nombre);
+        int columna = 0;
+        while (columna < nombres.length) {
+            System.out.printf("%15s", nombres[columna]);
+            columna++;
         }
         System.out.println();
 
-        for (int fila = 0; fila < nombres.length; fila++) {
+        int fila = 0;
+        while (fila < nombres.length) {
             System.out.printf("%15s", nombres[fila]);
-            for (int columna = 0; columna < nombres.length; columna++) {
+            columna = 0;
+            while (columna < nombres.length) {
                 System.out.printf("%15d", distancias[fila][columna]);
+                columna++;
             }
             System.out.println();
+            fila++;
         }
     }
 
-    /** Comprueba que cada distancia tenga el mismo valor en la posición simétrica. */
+    /** Comprueba que la matriz tenga los mismos valores a ambos lados de la diagonal. */
     public boolean esMatrizSimetrica() {
-        for (int fila = 0; fila < distancias.length; fila++) {
-            for (int columna = fila + 1; columna < distancias.length; columna++) {
+        int fila = 0;
+        while (fila < distancias.length) {
+            int columna = fila + 1;
+            while (columna < distancias.length) {
                 if (distancias[fila][columna] != distancias[columna][fila]) {
                     return false;
                 }
+                columna++;
             }
+            fila++;
         }
         return true;
     }
 
-    /**
-     * Calcula la ruta más corta con Dijkstra.
-     *
-     * @throws IllegalArgumentException si el origen o destino no existen
-     * @throws IllegalStateException si no hay un camino entre ellos
-     */
+    /** Calcula una ruta más corta usando Dijkstra y arreglos. */
     public Ruta calcularRutaMasCorta(String origen, String destino) {
         int indiceOrigen = indiceDe(origen);
         int indiceDestino = indiceDe(destino);
-        int cantidad = nombres.length;
 
         if (indiceOrigen == indiceDestino) {
-            return new Ruta(
-                    new String[]{nombres[indiceOrigen]},
-                    new int[0],
-                    0
-            );
+            return new Ruta(new String[]{nombres[indiceOrigen]}, new int[0], 0);
         }
 
+        int cantidad = nombres.length;
         int[] mejorDistancia = new int[cantidad];
         boolean[] visitados = new boolean[cantidad];
         int[] anterior = new int[cantidad];
 
-        for (int i = 0; i < cantidad; i++) {
+        int i = 0;
+        while (i < cantidad) {
             mejorDistancia[i] = Integer.MAX_VALUE;
             anterior[i] = -1;
+            i++;
         }
         mejorDistancia[indiceOrigen] = 0;
 
-        for (int vuelta = 0; vuelta < cantidad; vuelta++) {
+        int vuelta = 0;
+        while (vuelta < cantidad) {
             int actual = indiceMenorNoVisitado(mejorDistancia, visitados);
 
-            if (actual == -1) {
-                break;
-            }
-            if (actual == indiceDestino) {
+            if (actual == -1 || actual == indiceDestino) {
                 break;
             }
 
             visitados[actual] = true;
+            int vecino = 0;
 
-            for (int vecino = 0; vecino < cantidad; vecino++) {
+            while (vecino < cantidad) {
                 int distanciaDirecta = distancias[actual][vecino];
 
                 if (distanciaDirecta > 0 && !visitados[vecino]) {
-                    long distanciaPropuesta =
+                    long propuesta =
                             (long) mejorDistancia[actual] + distanciaDirecta;
 
-                    if (distanciaPropuesta < mejorDistancia[vecino]) {
-                        mejorDistancia[vecino] = (int) distanciaPropuesta;
+                    if (propuesta < mejorDistancia[vecino]) {
+                        mejorDistancia[vecino] = (int) propuesta;
                         anterior[vecino] = actual;
                     }
                 }
+                vecino++;
             }
+            vuelta++;
         }
 
         if (mejorDistancia[indiceDestino] == Integer.MAX_VALUE) {
@@ -213,54 +210,47 @@ public class Campus {
             actual = anterior[actual];
         }
 
-        if (caminoIndices.peek() != indiceOrigen) {
-            throw new IllegalStateException(
-                    "No se pudo reconstruir la ruta encontrada."
-            );
-        }
-
         int cantidadNodos = caminoIndices.tamano();
         String[] camino = new String[cantidadNodos];
         int[] tramos = new int[cantidadNodos - 1];
 
-        for (int i = 0; i < cantidadNodos; i++) {
+        i = 0;
+        while (i < cantidadNodos) {
             camino[i] = nombres[caminoIndices.pop()];
+            i++;
         }
 
-        for (int i = 0; i < tramos.length; i++) {
+        i = 0;
+        while (i < tramos.length) {
             int desde = indiceDe(camino[i]);
             int hasta = indiceDe(camino[i + 1]);
             tramos[i] = distancias[desde][hasta];
+            i++;
         }
 
         return new Ruta(camino, tramos, mejorDistancia[indiceDestino]);
     }
 
-    /** Imprime los edificios del camino, el largo de cada tramo y el total. */
+    /** Imprime cada tramo de la ruta y la distancia total. */
     public void mostrarRuta(Ruta ruta) {
         if (ruta == null) {
             throw new IllegalArgumentException("La ruta no puede ser null.");
         }
 
         System.out.println("Ruta mas corta:");
-
         String[] edificios = ruta.getNombresEdificios();
-        int[] metrosTramos = ruta.getMetrosTramos();
+        int[] tramos = ruta.getMetrosTramos();
 
         if (edificios.length == 1) {
             System.out.println("  " + edificios[0]);
         } else {
-            StringBuilder recorrido = new StringBuilder("  ");
-            recorrido.append(edificios[0]);
-
-            for (int i = 0; i < metrosTramos.length; i++) {
-                recorrido.append(" -> ")
-                        .append(edificios[i + 1])
-                        .append(" (")
-                        .append(metrosTramos[i])
-                        .append("m)");
+            String recorrido = "  " + edificios[0];
+            int i = 0;
+            while (i < tramos.length) {
+                recorrido += " -> " + edificios[i + 1]
+                        + " (" + tramos[i] + "m)";
+                i++;
             }
-
             System.out.println(recorrido);
         }
 
@@ -268,64 +258,22 @@ public class Campus {
                 + ruta.getDistanciaTotal() + " metros");
     }
 
-    private int indiceMenorNoVisitado(int[] distanciasActuales, boolean[] visitados) {
+    private int indiceMenorNoVisitado(
+            int[] distanciasActuales,
+            boolean[] visitados
+    ) {
         int indiceMenor = -1;
         int valorMenor = Integer.MAX_VALUE;
+        int i = 0;
 
-        for (int i = 0; i < distanciasActuales.length; i++) {
+        while (i < distanciasActuales.length) {
             if (!visitados[i] && distanciasActuales[i] < valorMenor) {
                 indiceMenor = i;
                 valorMenor = distanciasActuales[i];
             }
+            i++;
         }
 
         return indiceMenor;
-    }
-
-    /** Resultado de una ruta: edificios ordenados, tramos y distancia total. */
-    public static class Ruta {
-        private String[] nombresEdificios;
-        private int[] metrosTramos;
-        private int distanciaTotal;
-
-        private Ruta(
-                String[] nombresEdificios,
-                int[] metrosTramos,
-                int distanciaTotal
-        ) {
-            this.nombresEdificios = copiar(nombresEdificios);
-            this.metrosTramos = copiar(metrosTramos);
-            this.distanciaTotal = distanciaTotal;
-        }
-
-        /** Devuelve una copia de los nombres de edificios del camino. */
-        public String[] getNombresEdificios() {
-            return copiar(nombresEdificios);
-        }
-
-        /** Devuelve una copia de las distancias de cada tramo. */
-        public int[] getMetrosTramos() {
-            return copiar(metrosTramos);
-        }
-
-        public int getDistanciaTotal() {
-            return distanciaTotal;
-        }
-
-        private static String[] copiar(String[] original) {
-            String[] copia = new String[original.length];
-            for (int i = 0; i < original.length; i++) {
-                copia[i] = original[i];
-            }
-            return copia;
-        }
-
-        private static int[] copiar(int[] original) {
-            int[] copia = new int[original.length];
-            for (int i = 0; i < original.length; i++) {
-                copia[i] = original[i];
-            }
-            return copia;
-        }
     }
 }
