@@ -1,10 +1,7 @@
 package estructuras;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
-/** Pila genérica basada en nodos; el primero es el tope de la pila. */
-public class Pila<T> implements Iterable<T> {
+/** Pila genérica enlazada. El nodo superior representa el tope. */
+public class Pila<T> {
     private Nodo<T> tope;
     private int tamano;
 
@@ -14,7 +11,7 @@ public class Pila<T> implements Iterable<T> {
         tamano = 0;
     }
 
-    /** Inserta un dato en el tope de la pila. */
+    /** Inserta un dato en el tope. */
     public void push(T dato) {
         Nodo<T> nuevo = new Nodo<>(dato);
         nuevo.setSiguiente(tope);
@@ -29,7 +26,9 @@ public class Pila<T> implements Iterable<T> {
      */
     public T pop() {
         if (estaVacia()) {
-            throw new IllegalStateException("No se puede hacer pop: la pila está vacía");
+            throw new IllegalStateException(
+                    "No se puede hacer pop: la pila está vacía"
+            );
         }
 
         T dato = tope.getDato();
@@ -45,18 +44,39 @@ public class Pila<T> implements Iterable<T> {
      */
     public T peek() {
         if (estaVacia()) {
-            throw new IllegalStateException("No se puede hacer peek: la pila está vacía");
+            throw new IllegalStateException(
+                    "No se puede hacer peek: la pila está vacía"
+            );
         }
 
         return tope.getDato();
     }
 
-    /** Indica si la pila no tiene elementos. */
+    /** Devuelve el elemento en el índice indicado, contando desde el tope. */
+    public T obtener(int indice) {
+        if (indice < 0 || indice >= tamano) {
+            throw new IndexOutOfBoundsException(
+                    "Índice fuera de los límites de la pila: " + indice
+            );
+        }
+
+        Nodo<T> actual = tope;
+        int posicion = 0;
+
+        while (posicion < indice) {
+            actual = actual.getSiguiente();
+            posicion++;
+        }
+
+        return actual.getDato();
+    }
+
+    /** Indica si la pila está vacía. */
     public boolean estaVacia() {
         return tope == null;
     }
 
-    /** Devuelve la cantidad de elementos almacenados. */
+    /** Devuelve el número de elementos. */
     public int tamano() {
         return tamano;
     }
@@ -67,47 +87,21 @@ public class Pila<T> implements Iterable<T> {
         tamano = 0;
     }
 
-    /** Devuelve un iterador que recorre desde el tope hasta el fondo. */
-    @Override
-    public Iterator<T> iterator() {
-        return new Iterator<T>() {
-            private Nodo<T> actual = tope;
-
-            @Override
-            public boolean hasNext() {
-                return actual != null;
-            }
-
-            @Override
-            public T next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException(
-                            "No hay más elementos en la pila"
-                    );
-                }
-
-                T dato = actual.getDato();
-                actual = actual.getSiguiente();
-                return dato;
-            }
-        };
-    }
-
-    /** Devuelve los elementos desde el tope hasta el fondo. */
+    /** Devuelve el contenido desde el tope hasta el fondo. */
     @Override
     public String toString() {
-        StringBuilder resultado = new StringBuilder("[");
+        String resultado = "[";
         Nodo<T> actual = tope;
 
         while (actual != null) {
-            resultado.append(actual.getDato());
+            resultado += actual.getDato();
             actual = actual.getSiguiente();
 
             if (actual != null) {
-                resultado.append(", ");
+                resultado += ", ";
             }
         }
 
-        return resultado.append("]").toString();
+        return resultado + "]";
     }
 }
