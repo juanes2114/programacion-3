@@ -1,10 +1,7 @@
 package estructuras;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
-/** Cola genérica basada en nodos, con referencias al frente y al final. */
-public class Cola<T> implements Iterable<T> {
+/** Cola genérica enlazada con referencias al frente y al final. */
+public class Cola<T> {
     private Nodo<T> frente;
     private Nodo<T> finalCola;
     private int tamano;
@@ -32,7 +29,7 @@ public class Cola<T> implements Iterable<T> {
     }
 
     /**
-     * Quita y devuelve el dato que lleva más tiempo en la cola.
+     * Quita y devuelve el dato del frente.
      *
      * @throws IllegalStateException si la cola está vacía
      */
@@ -102,12 +99,31 @@ public class Cola<T> implements Iterable<T> {
         return false;
     }
 
-    /** Indica si la cola no tiene elementos. */
+    /** Devuelve el elemento en el índice indicado, contando desde el frente. */
+    public T obtener(int indice) {
+        if (indice < 0 || indice >= tamano) {
+            throw new IndexOutOfBoundsException(
+                    "Índice fuera de los límites de la cola: " + indice
+            );
+        }
+
+        Nodo<T> actual = frente;
+        int posicion = 0;
+
+        while (posicion < indice) {
+            actual = actual.getSiguiente();
+            posicion++;
+        }
+
+        return actual.getDato();
+    }
+
+    /** Indica si la cola está vacía. */
     public boolean estaVacia() {
         return frente == null;
     }
 
-    /** Devuelve la cantidad de elementos almacenados. */
+    /** Devuelve el número de elementos. */
     public int tamano() {
         return tamano;
     }
@@ -119,48 +135,22 @@ public class Cola<T> implements Iterable<T> {
         tamano = 0;
     }
 
-    /** Devuelve un iterador que recorre desde el frente hasta el final. */
-    @Override
-    public Iterator<T> iterator() {
-        return new Iterator<T>() {
-            private Nodo<T> actual = frente;
-
-            @Override
-            public boolean hasNext() {
-                return actual != null;
-            }
-
-            @Override
-            public T next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException(
-                            "No hay más elementos en la cola"
-                    );
-                }
-
-                T dato = actual.getDato();
-                actual = actual.getSiguiente();
-                return dato;
-            }
-        };
-    }
-
-    /** Devuelve los elementos en orden desde el frente hasta el final. */
+    /** Devuelve el contenido desde el frente hasta el final. */
     @Override
     public String toString() {
-        StringBuilder resultado = new StringBuilder("[");
+        String resultado = "[";
         Nodo<T> actual = frente;
 
         while (actual != null) {
-            resultado.append(actual.getDato());
+            resultado += actual.getDato();
             actual = actual.getSiguiente();
 
             if (actual != null) {
-                resultado.append(", ");
+                resultado += ", ";
             }
         }
 
-        return resultado.append("]").toString();
+        return resultado + "]";
     }
 
     private boolean sonIguales(T primero, T segundo) {
