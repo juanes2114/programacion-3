@@ -5,7 +5,7 @@ import excepciones.CupoLlenoException;
 import estructuras.Cola;
 import estructuras.ListaEnlazada;
 
-/** Materia con cupos, prerrequisitos, estudiantes inscritos y lista de espera. */
+/** Materia con cupos, prerrequisitos, inscritos y estudiantes en espera. */
 public class Materia {
     private String codigo;
     private String nombre;
@@ -49,12 +49,7 @@ public class Materia {
         return creditos;
     }
 
-    /**
-     * Agrega un prerrequisito si no es la misma materia ni está agregado.
-     *
-     * @throws IllegalArgumentException si la materia es null o intenta ser
-     *                                  prerrequisito de sí misma
-     */
+    /** Agrega un prerrequisito sin repetir código ni aceptar la misma materia. */
     public void agregarPrerrequisito(Materia materia) {
         if (materia == null) {
             throw new IllegalArgumentException("El prerrequisito no puede ser null.");
@@ -78,17 +73,14 @@ public class Materia {
         return prerrequisitos;
     }
 
-    /** Indica si hay al menos un cupo disponible. */
     public boolean tieneCupo() {
         return inscritos.tamano() < cuposMaximos;
     }
 
-    /** Devuelve cuántos cupos quedan disponibles. */
     public int cuposDisponibles() {
         return cuposMaximos - inscritos.tamano();
     }
 
-    /** Indica si el estudiante ya está inscrito en esta materia. */
     public boolean estaInscrito(Estudiante estudiante) {
         return inscritos.contiene(estudiante);
     }
@@ -97,23 +89,38 @@ public class Materia {
         return inscritos;
     }
 
-    /** Quita al estudiante de la lista de inscritos. */
     public boolean quitarInscrito(Estudiante estudiante) {
         return inscritos.eliminar(estudiante);
     }
 
+    /** Indica si el estudiante está en la cola de espera. */
+    public boolean estaEnEspera(Estudiante estudiante) {
+        for (Estudiante enEspera : colaEspera) {
+            if (enEspera == estudiante) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Quita al estudiante de la cola de espera si se encuentra allí. */
+    public boolean quitarDeEspera(Estudiante estudiante) {
+        return colaEspera.eliminar(estudiante);
+    }
+
     /**
-     * Inscribe al estudiante si hay cupo y no está inscrito ya.
+     * Inscribe al estudiante si hay cupo y no estaba inscrito.
      *
-     * @throws CupoLlenoException si no quedan cupos
-     * @throws IllegalArgumentException si el estudiante es null o ya está inscrito
+     * @throws CupoLlenoException si la materia ya no tiene cupos disponibles
      */
     public void agregarInscrito(Estudiante estudiante) throws CupoLlenoException {
         if (estudiante == null) {
             throw new IllegalArgumentException("El estudiante no puede ser null.");
         }
         if (estaInscrito(estudiante)) {
-            throw new IllegalArgumentException("El estudiante ya está inscrito en esta materia.");
+            throw new IllegalArgumentException(
+                    "El estudiante ya está inscrito en esta materia."
+            );
         }
         if (!tieneCupo()) {
             throw new CupoLlenoException(
@@ -124,36 +131,26 @@ public class Materia {
         inscritos.agregarAlFinal(estudiante);
     }
 
-    /**
-     * Agrega al estudiante al final de la cola de espera.
-     *
-     * @throws IllegalArgumentException si el estudiante es null, ya está inscrito
-     *                                  o ya está esperando
-     */
+    /** Encola al estudiante si no está inscrito ni está esperando ya. */
     public void encolarEnEspera(Estudiante estudiante) {
         if (estudiante == null) {
             throw new IllegalArgumentException("El estudiante no puede ser null.");
         }
         if (estaInscrito(estudiante)) {
-            throw new IllegalArgumentException("El estudiante ya está inscrito en esta materia.");
+            throw new IllegalArgumentException(
+                    "El estudiante ya está inscrito en esta materia."
+            );
         }
-
-        for (Estudiante enEspera : colaEspera) {
-            if (enEspera == estudiante) {
-                throw new IllegalArgumentException(
-                        "El estudiante ya está en la cola de espera."
-                );
-            }
+        if (estaEnEspera(estudiante)) {
+            throw new IllegalArgumentException(
+                    "El estudiante ya está en la cola de espera."
+            );
         }
 
         colaEspera.encolar(estudiante);
     }
 
-    /**
-     * Saca y devuelve al primer estudiante de la cola de espera.
-     *
-     * @throws ColaDeEsperaVaciaException si no hay estudiantes esperando
-     */
+    /** Saca al primero de la cola o convierte el error de Cola en excepción del dominio. */
     public Estudiante siguienteEnEspera() throws ColaDeEsperaVaciaException {
         try {
             return colaEspera.desencolar();
@@ -172,7 +169,6 @@ public class Materia {
         return colaEspera.tamano();
     }
 
-    /** Devuelve el código, nombre, créditos y cupos de la materia. */
     @Override
     public String toString() {
         return "Materia{codigo='" + codigo
