@@ -1,10 +1,7 @@
 package estructuras;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
-/** Lista enlazada simple que conserva referencias a la cabeza y a la cola. */
-public class ListaEnlazada<T> implements Iterable<T> {
+/** Lista enlazada simple con referencias a la cabeza y a la cola. */
+public class ListaEnlazada<T> {
     private Nodo<T> cabeza;
     private Nodo<T> cola;
     private int tamano;
@@ -16,7 +13,7 @@ public class ListaEnlazada<T> implements Iterable<T> {
         tamano = 0;
     }
 
-    /** Agrega un dato después del último nodo. */
+    /** Agrega un elemento al final de la lista. */
     public void agregarAlFinal(T dato) {
         Nodo<T> nuevo = new Nodo<>(dato);
 
@@ -31,7 +28,7 @@ public class ListaEnlazada<T> implements Iterable<T> {
         tamano++;
     }
 
-    /** Agrega un dato antes de la cabeza actual. */
+    /** Agrega un elemento al inicio de la lista. */
     public void agregarAlInicio(T dato) {
         Nodo<T> nuevo = new Nodo<>(dato);
         nuevo.setSiguiente(cabeza);
@@ -44,11 +41,7 @@ public class ListaEnlazada<T> implements Iterable<T> {
         tamano++;
     }
 
-    /**
-     * Elimina la primera coincidencia del dato.
-     *
-     * @return true si encontró y eliminó el dato; false si no estaba en la lista
-     */
+    /** Elimina la primera coincidencia y devuelve si la encontró. */
     public boolean eliminar(T dato) {
         Nodo<T> anterior = null;
         Nodo<T> actual = cabeza;
@@ -76,7 +69,7 @@ public class ListaEnlazada<T> implements Iterable<T> {
         return false;
     }
 
-    /** Indica si la lista contiene un dato igual al recibido. */
+    /** Indica si la lista contiene el dato indicado. */
     public boolean contiene(T dato) {
         Nodo<T> actual = cabeza;
 
@@ -91,9 +84,9 @@ public class ListaEnlazada<T> implements Iterable<T> {
     }
 
     /**
-     * Devuelve el dato ubicado en el índice indicado, empezando desde cero.
+     * Devuelve el dato del índice indicado, empezando en cero.
      *
-     * @throws IndexOutOfBoundsException si el índice no pertenece a la lista
+     * @throws IndexOutOfBoundsException si el índice no está dentro de la lista
      */
     public T obtener(int indice) {
         if (indice < 0 || indice >= tamano) {
@@ -103,19 +96,22 @@ public class ListaEnlazada<T> implements Iterable<T> {
         }
 
         Nodo<T> actual = cabeza;
-        for (int posicion = 0; posicion < indice; posicion++) {
+        int posicion = 0;
+
+        while (posicion < indice) {
             actual = actual.getSiguiente();
+            posicion++;
         }
 
         return actual.getDato();
     }
 
-    /** Devuelve la cantidad de elementos almacenados. */
+    /** Devuelve el número de elementos. */
     public int tamano() {
         return tamano;
     }
 
-    /** Indica si la lista no tiene elementos. */
+    /** Indica si la lista está vacía. */
     public boolean estaVacia() {
         return tamano == 0;
     }
@@ -127,48 +123,22 @@ public class ListaEnlazada<T> implements Iterable<T> {
         tamano = 0;
     }
 
-    /** Devuelve un iterador que recorre la lista desde la cabeza hasta la cola. */
-    @Override
-    public Iterator<T> iterator() {
-        return new Iterator<T>() {
-            private Nodo<T> actual = cabeza;
-
-            @Override
-            public boolean hasNext() {
-                return actual != null;
-            }
-
-            @Override
-            public T next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException(
-                            "No hay más elementos en la lista"
-                    );
-                }
-
-                T dato = actual.getDato();
-                actual = actual.getSiguiente();
-                return dato;
-            }
-        };
-    }
-
-    /** Devuelve los elementos en orden, entre corchetes y separados por comas. */
+    /** Devuelve el contenido en orden, desde la cabeza. */
     @Override
     public String toString() {
-        StringBuilder resultado = new StringBuilder("[");
+        String resultado = "[";
         Nodo<T> actual = cabeza;
 
         while (actual != null) {
-            resultado.append(actual.getDato());
+            resultado += actual.getDato();
             actual = actual.getSiguiente();
 
             if (actual != null) {
-                resultado.append(", ");
+                resultado += ", ";
             }
         }
 
-        return resultado.append("]").toString();
+        return resultado + "]";
     }
 
     private boolean sonIguales(T primero, T segundo) {
