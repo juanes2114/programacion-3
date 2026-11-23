@@ -9,13 +9,13 @@ public class Estudiante extends Persona {
     private String[][] codigosMateriasNotas;
     private ListaEnlazada<Materia> historialMaterias;
 
-    /** Crea un estudiante con matriz de notas vacía para 10 semestres y 20 materias. */
+    /** Crea un estudiante con una matriz vacía para diez semestres. */
     public Estudiante(String nombre, String id, String email, int semestre) {
         super(nombre, id, email);
         this.semestre = semestre;
-        this.notas = new Double[10][20];
-        this.codigosMateriasNotas = new String[10][20];
-        this.historialMaterias = new ListaEnlazada<>();
+        notas = new Double[10][20];
+        codigosMateriasNotas = new String[10][20];
+        historialMaterias = new ListaEnlazada<>();
     }
 
     public int getSemestre() {
@@ -26,7 +26,7 @@ public class Estudiante extends Persona {
         return notas;
     }
 
-    /** Agrega la materia al historial si su código todavía no aparece allí. */
+    /** Agrega la materia al historial si aún no aparece por su código. */
     public void agregarAlHistorial(Materia materia) {
         if (materia == null) {
             throw new IllegalArgumentException("La materia no puede ser null.");
@@ -41,84 +41,79 @@ public class Estudiante extends Persona {
         return historialMaterias;
     }
 
-    /** Indica si el código de materia está registrado en el historial. */
+    /** Indica si el historial contiene una materia con ese código. */
     public boolean haCursado(String codigoMateria) {
         if (codigoMateria == null) {
             return false;
         }
 
-        for (Materia materia : historialMaterias) {
+        int indice = 0;
+        while (indice < historialMaterias.tamano()) {
+            Materia materia = historialMaterias.obtener(indice);
             if (materia.getCodigo().equals(codigoMateria)) {
                 return true;
             }
+            indice++;
         }
 
         return false;
     }
 
-    /**
-     * Registra o reemplaza una nota y agrega la materia al historial.
-     *
-     * @param semestre semestre de 1 a 10
-     * @param materia materia a la que corresponde la nota
-     * @param nota calificación de 0 a 5
-     * @throws IllegalArgumentException si los datos no son válidos o el semestre
-     *                                  ya tiene 20 materias distintas registradas
-     */
+    /** Registra o reemplaza la nota y agrega la materia al historial. */
     public void registrarNota(int semestre, Materia materia, double nota) {
         validarSemestre(semestre);
 
         if (materia == null) {
             throw new IllegalArgumentException("La materia no puede ser null.");
         }
-        if (Double.isNaN(nota) || Double.isInfinite(nota) || nota < 0.0 || nota > 5.0) {
+        if (Double.isNaN(nota) || Double.isInfinite(nota)
+                || nota < 0.0 || nota > 5.0) {
             throw new IllegalArgumentException("La nota debe estar entre 0.0 y 5.0.");
         }
 
         int fila = semestre - 1;
-        String codigoMateria = materia.getCodigo();
-        int columnaExistente = buscarColumna(fila, codigoMateria);
+        String codigo = materia.getCodigo();
+        int columna = buscarColumna(fila, codigo);
 
-        if (columnaExistente == -1) {
-            int columnaLibre = buscarColumnaLibre(fila);
-            if (columnaLibre == -1) {
+        if (columna == -1) {
+            columna = buscarColumnaLibre(fila);
+            if (columna == -1) {
                 throw new IllegalArgumentException(
-                        "El semestre " + semestre + " ya tiene 20 materias registradas."
+                        "El semestre " + semestre
+                                + " ya tiene 20 materias registradas."
                 );
             }
-
-            columnaExistente = columnaLibre;
-            codigosMateriasNotas[fila][columnaExistente] = codigoMateria;
+            codigosMateriasNotas[fila][columna] = codigo;
         }
 
-        notas[fila][columnaExistente] = nota;
+        notas[fila][columna] = nota;
         agregarAlHistorial(materia);
     }
 
-    /** Indica si hay una nota registrada de 3.0 o más para el código indicado. */
+    /** Indica si existe alguna nota aprobada para el código indicado. */
     public boolean haAprobado(String codigoMateria) {
         if (codigoMateria == null) {
             return false;
         }
 
-        for (int fila = 0; fila < notas.length; fila++) {
-            for (int columna = 0; columna < notas[fila].length; columna++) {
+        int fila = 0;
+        while (fila < notas.length) {
+            int columna = 0;
+            while (columna < notas[fila].length) {
                 if (codigoMateria.equals(codigosMateriasNotas[fila][columna])
                         && notas[fila][columna] != null
                         && notas[fila][columna] >= 3.0) {
                     return true;
                 }
+                columna++;
             }
+            fila++;
         }
 
         return false;
     }
 
-    /**
-     * Consulta la nota de una materia en un semestre.
-     *
-     * @return la nota, o null si todavía no hay nota registrada
-     */
+    /** Devuelve la nota del semestre indicado o null si no hay nota. */
     public Double consultarNota(int semestre, String codigoMateria) {
         validarSemestre(semestre);
 
@@ -130,14 +125,11 @@ public class Estudiante extends Persona {
         if (columna == -1) {
             return null;
         }
-
         return notas[semestre - 1][columna];
     }
 
     /**
-     * Deshace el registro más reciente para esa materia y semestre.
-     * Si notaAnterior es null, quita la nota; de lo contrario, restaura ese valor.
-     * Si al quitarla no queda ninguna nota para la materia, también la quita del historial.
+     * Deshace el registro: restaura notaAnterior o quita la nota si es null.
      */
     public void deshacerRegistroNota(
             int semestre,
@@ -154,12 +146,14 @@ public class Estudiante extends Persona {
                 || Double.isInfinite(notaAnterior)
                 || notaAnterior < 0.0
                 || notaAnterior > 5.0)) {
-            throw new IllegalArgumentException("La nota anterior debe estar entre 0.0 y 5.0.");
+            throw new IllegalArgumentException(
+                    "La nota anterior debe estar entre 0.0 y 5.0."
+            );
         }
 
         int fila = semestre - 1;
-        String codigoMateria = materia.getCodigo();
-        int columna = buscarColumna(fila, codigoMateria);
+        String codigo = materia.getCodigo();
+        int columna = buscarColumna(fila, codigo);
 
         if (columna == -1) {
             return;
@@ -168,14 +162,13 @@ public class Estudiante extends Persona {
         if (notaAnterior != null) {
             notas[fila][columna] = notaAnterior;
             agregarAlHistorial(materia);
-            return;
-        }
+        } else {
+            notas[fila][columna] = null;
+            codigosMateriasNotas[fila][columna] = null;
 
-        notas[fila][columna] = null;
-        codigosMateriasNotas[fila][columna] = null;
-
-        if (!tieneNotaRegistrada(codigoMateria)) {
-            quitarDelHistorial(codigoMateria);
+            if (!tieneNotaRegistrada(codigo)) {
+                quitarDelHistorial(codigo);
+            }
         }
     }
 
@@ -185,46 +178,57 @@ public class Estudiante extends Persona {
         }
     }
 
-    private int buscarColumna(int fila, String codigoMateria) {
-        for (int columna = 0; columna < codigosMateriasNotas[fila].length; columna++) {
-            if (codigoMateria.equals(codigosMateriasNotas[fila][columna])) {
+    private int buscarColumna(int fila, String codigo) {
+        int columna = 0;
+        while (columna < codigosMateriasNotas[fila].length) {
+            if (codigo.equals(codigosMateriasNotas[fila][columna])) {
                 return columna;
             }
+            columna++;
         }
         return -1;
     }
 
     private int buscarColumnaLibre(int fila) {
-        for (int columna = 0; columna < codigosMateriasNotas[fila].length; columna++) {
+        int columna = 0;
+        while (columna < codigosMateriasNotas[fila].length) {
             if (codigosMateriasNotas[fila][columna] == null) {
                 return columna;
             }
+            columna++;
         }
         return -1;
     }
 
-    private boolean tieneNotaRegistrada(String codigoMateria) {
-        for (int fila = 0; fila < codigosMateriasNotas.length; fila++) {
-            for (int columna = 0; columna < codigosMateriasNotas[fila].length; columna++) {
-                if (codigoMateria.equals(codigosMateriasNotas[fila][columna])
+    private boolean tieneNotaRegistrada(String codigo) {
+        int fila = 0;
+        while (fila < codigosMateriasNotas.length) {
+            int columna = 0;
+            while (columna < codigosMateriasNotas[fila].length) {
+                if (codigo.equals(codigosMateriasNotas[fila][columna])
                         && notas[fila][columna] != null) {
                     return true;
                 }
+                columna++;
             }
+            fila++;
         }
         return false;
     }
 
-    private void quitarDelHistorial(String codigoMateria) {
-        for (Materia materia : historialMaterias) {
-            if (materia.getCodigo().equals(codigoMateria)) {
+    private void quitarDelHistorial(String codigo) {
+        int indice = 0;
+        while (indice < historialMaterias.tamano()) {
+            Materia materia = historialMaterias.obtener(indice);
+            if (materia.getCodigo().equals(codigo)) {
                 historialMaterias.eliminar(materia);
                 return;
             }
+            indice++;
         }
     }
 
-    /** Muestra los datos del estudiante y el número de materias del historial. */
+    /** Imprime información del estudiante y el tamaño de su historial. */
     @Override
     public void mostrarInformacion() {
         System.out.println("Estudiante");
