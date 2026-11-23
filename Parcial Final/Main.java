@@ -1,118 +1,115 @@
-import excepciones.ColaDeEsperaVaciaException;
-import excepciones.CupoLlenoException;
-import modelo.Estudiante;
-import modelo.Materia;
-import modelo.Persona;
-import modelo.Profesor;
+import excepciones.HorarioConflictivoException;
+import modelo.Aula;
 
-/** Pruebas de materias, cupos, notas e herencia. */
+/** Pruebas de reservas y disponibilidad de un aula. */
 public class Main {
     public static void main(String[] args) {
-        probarMateriasYPrerrequisitos();
-        probarInscripcionYCola();
-        probarRegistroDeNota();
-        probarPolimorfismo();
+        Aula aula = new Aula("101", 30);
+
+        probarReservaInicial(aula);
+        consultarHorario(aula);
+        probarConflictoSinReservaParcial(aula);
+        probarLiberacion(aula);
+        probarDatosInvalidos(aula);
+        mostrarHorarioSemanal(aula);
     }
 
-    private static void probarMateriasYPrerrequisitos() {
-        System.out.println("=== Materias y prerrequisitos ===");
-
-        Materia calculo101 = new Materia("CALC101", "Cálculo I", 2, 4);
-        Materia calculo102 = new Materia("CALC102", "Cálculo II", 2, 4);
-        calculo102.agregarPrerrequisito(calculo101);
-
-        System.out.println(calculo101);
-        System.out.println(calculo102);
-        System.out.println("Prerrequisito de CALC102: "
-                + calculo102.getPrerrequisitos().obtener(0).getCodigo());
-    }
-
-    private static void probarInscripcionYCola() {
-        System.out.println();
-        System.out.println("=== Inscripción y cola de espera ===");
-
-        Materia materia = new Materia("CALC101", "Cálculo I", 2, 4);
-        Estudiante ana = new Estudiante("Ana Torres", "A001", "ana@uni.edu", 1);
-        Estudiante luis = new Estudiante("Luis Pérez", "A002", "luis@uni.edu", 1);
-        Estudiante marta = new Estudiante("Marta Díaz", "A003", "marta@uni.edu", 1);
+    private static void probarReservaInicial(Aula aula) {
+        System.out.println("=== Reserva inicial ===");
 
         try {
-            materia.agregarInscrito(ana);
-            materia.agregarInscrito(luis);
-            System.out.println("Inscritos: " + materia.getInscritos().tamano());
-
-            try {
-                materia.agregarInscrito(marta);
-            } catch (CupoLlenoException excepcion) {
-                System.out.println("Excepción capturada: " + excepcion.getMessage());
-                materia.encolarEnEspera(marta);
-            }
-
-            System.out.println("Cola de espera: " + materia.getColaEspera());
-
-            materia.quitarInscrito(ana);
-            Estudiante siguiente = materia.siguienteEnEspera();
-            materia.agregarInscrito(siguiente);
-            System.out.println("Entra desde la espera: " + siguiente.getNombre());
-            System.out.println("Inscritos ahora: " + materia.getInscritos().tamano());
-
-            try {
-                materia.siguienteEnEspera();
-            } catch (ColaDeEsperaVaciaException excepcion) {
-                System.out.println("Excepción capturada: " + excepcion.getMessage());
-            }
-        } catch (CupoLlenoException excepcion) {
-            System.out.println("No se pudo completar la inscripción: " + excepcion.getMessage());
-        } catch (ColaDeEsperaVaciaException excepcion) {
-            System.out.println("No se pudo atender la espera: " + excepcion.getMessage());
+            aula.reservar(1, 8, 2, "CALC101");
+            System.out.println(aula);
+            System.out.println("Reserva de CALC101 realizada el lunes de 8:00 a 10:00.");
+        } catch (HorarioConflictivoException excepcion) {
+            System.out.println("Error: HorarioConflictivoException - "
+                    + excepcion.getMessage());
         }
     }
 
-    private static void probarRegistroDeNota() {
+    private static void consultarHorario(Aula aula) {
         System.out.println();
-        System.out.println("=== Registro de nota e historial ===");
+        System.out.println("=== Consulta de disponibilidad ===");
 
-        Estudiante estudiante = new Estudiante(
-                "Ana Torres",
-                "A001",
-                "ana@uni.edu",
-                1
-        );
-        Materia materia = new Materia("CALC101", "Cálculo I", 2, 4);
-
-        estudiante.registrarNota(1, materia, 4.2);
-
-        System.out.println("Nota en CALC101: "
-                + estudiante.consultarNota(1, "CALC101"));
-        System.out.println("¿Aprobó CALC101?: "
-                + estudiante.haAprobado("CALC101"));
-        System.out.println("¿Ha cursado CALC101?: "
-                + estudiante.haCursado("CALC101"));
-        System.out.println("Historial: " + estudiante.getHistorialMaterias());
+        System.out.println("Lunes 8:00 libre: "
+                + aula.consultarDisponibilidad(1, 8));
+        System.out.println("Lunes 10:00 libre: "
+                + aula.consultarDisponibilidad(1, 10));
+        System.out.println("Materia del lunes a las 9:00: "
+                + aula.materiaEn(1, 9));
     }
 
-    private static void probarPolimorfismo() {
+    private static void probarConflictoSinReservaParcial(Aula aula) {
         System.out.println();
-        System.out.println("=== Polimorfismo ===");
+        System.out.println("=== Conflicto y reserva atómica ===");
 
-        Persona[] personas = new Persona[2];
-        personas[0] = new Estudiante(
-                "Camila Rojas",
-                "A004",
-                "camila@uni.edu",
-                2
-        );
-        personas[1] = new Profesor(
-                "Carlos Gómez",
-                "P001",
-                "carlos@uni.edu",
-                "Matemáticas",
-                4200000
-        );
-
-        for (Persona persona : personas) {
-            persona.mostrarInformacion();
-            System.out.println();
+        try {
+            aula.reservar(1, 9, 2, "CALC102");
+        } catch (HorarioConflictivoException excepcion) {
+            System.out.println("Error: HorarioConflictivoException - "
+                    + excepcion.getMessage());
         }
+
+        System.out.println("Lunes 10:00 sigue libre: "
+                + aula.consultarDisponibilidad(1, 10));
+    }
+
+    private static void probarLiberacion(Aula aula) {
+        System.out.println();
+        System.out.println("=== Liberar horario ===");
+
+        aula.liberar(1, 8, 2);
+        System.out.println("Lunes 8:00 libre después de liberar: "
+                + aula.consultarDisponibilidad(1, 8));
+
+        try {
+            aula.liberar(1, 8, 1);
+        } catch (IllegalArgumentException excepcion) {
+            System.out.println("Error: " + excepcion.getMessage());
+        }
+    }
+
+    private static void probarDatosInvalidos(Aula aula) {
+        System.out.println();
+        System.out.println("=== Validación de datos ===");
+
+        try {
+            aula.reservar(7, 8, 1, "MAT101");
+        } catch (IllegalArgumentException excepcion) {
+            System.out.println("Día inválido: " + excepcion.getMessage());
+        } catch (HorarioConflictivoException excepcion) {
+            System.out.println("Error de horario: " + excepcion.getMessage());
+        }
+
+        try {
+            aula.reservar(1, 24, 1, "MAT101");
+        } catch (IllegalArgumentException excepcion) {
+            System.out.println("Hora inválida: " + excepcion.getMessage());
+        } catch (HorarioConflictivoException excepcion) {
+            System.out.println("Error de horario: " + excepcion.getMessage());
+        }
+
+        try {
+            aula.reservar(6, 23, 2, "MAT101");
+        } catch (IllegalArgumentException excepcion) {
+            System.out.println("Duración inválida: " + excepcion.getMessage());
+        } catch (HorarioConflictivoException excepcion) {
+            System.out.println("Error de horario: " + excepcion.getMessage());
+        }
+    }
+
+    private static void mostrarHorarioSemanal(Aula aula) {
+        System.out.println();
+        System.out.println("=== Horario semanal ===");
+
+        try {
+            aula.reservar(2, 10, 1, "FIS101");
+            aula.reservar(6, 14, 2, "HIST101");
+        } catch (HorarioConflictivoException excepcion) {
+            System.out.println("Error: HorarioConflictivoException - "
+                    + excepcion.getMessage());
+        }
+
+        aula.mostrarHorario();
     }
 }
