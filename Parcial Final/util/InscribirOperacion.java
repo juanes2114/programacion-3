@@ -37,6 +37,15 @@ public class InscribirOperacion extends Operacion {
         ejecutada = true;
     }
 
+    /**
+     * Indica si el estudiante quedó inscrito directamente en la materia.
+     *
+     * @return true si quedó inscrito; false si quedó en la cola de espera
+     */
+    public boolean quedoInscrito() {
+        return quedoInscrito;
+    }
+
     @Override
     public void deshacer() {
         if (!ejecutada) {
