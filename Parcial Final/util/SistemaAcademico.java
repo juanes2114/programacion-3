@@ -23,7 +23,6 @@ public class SistemaAcademico {
     private Facultad[] facultades;
     private int cantidadFacultades;
 
-    /** Crea mapas vacíos y un arreglo para cinco facultades. */
     public SistemaAcademico() {
         estudiantes = new HashMap<>();
         materias = new HashMap<>();
@@ -32,7 +31,6 @@ public class SistemaAcademico {
         cantidadFacultades = 0;
     }
 
-    /** Crea y guarda un estudiante si su ID no está registrado. */
     public Estudiante registrarEstudiante(
             String nombre,
             String id,
@@ -50,7 +48,6 @@ public class SistemaAcademico {
         return estudiante;
     }
 
-    /** Busca un estudiante por ID. */
     public Estudiante buscarEstudiante(String id)
             throws EstudianteNoEncontradoException {
         Estudiante estudiante = estudiantes.get(id);
@@ -64,7 +61,7 @@ public class SistemaAcademico {
         return estudiante;
     }
 
-    /** Imprime los estudiantes; el orden depende del HashMap. */
+    /** Imprime estudiantes; el orden depende del HashMap. */
     public void listarEstudiantes() {
         Object[] valores = estudiantes.values().toArray();
         int indice = 0;
@@ -80,7 +77,7 @@ public class SistemaAcademico {
         }
     }
 
-    /** Elimina al estudiante del mapa, las inscripciones y las esperas. */
+    /** Elimina al estudiante de mapas, inscripciones y colas de espera. */
     public Estudiante eliminarEstudiante(String id)
             throws EstudianteNoEncontradoException {
         Estudiante estudiante = buscarEstudiante(id);
@@ -99,7 +96,6 @@ public class SistemaAcademico {
         return estudiante;
     }
 
-    /** Devuelve las materias en las que el estudiante está inscrito. */
     public ListaEnlazada<Materia> materiasInscritas(String id)
             throws EstudianteNoEncontradoException {
         Estudiante estudiante = buscarEstudiante(id);
@@ -113,14 +109,48 @@ public class SistemaAcademico {
             if (materia.estaInscrito(estudiante)) {
                 resultado.agregarAlFinal(materia);
             }
-
             indice++;
         }
 
         return resultado;
     }
 
-    /** Crea una materia si el código no existe y cupos y créditos son positivos. */
+    /** Devuelve las materias en las que el estudiante está esperando. */
+    public ListaEnlazada<Materia> materiasEnEspera(String id)
+            throws EstudianteNoEncontradoException {
+        Estudiante estudiante = buscarEstudiante(id);
+        ListaEnlazada<Materia> resultado = new ListaEnlazada<>();
+        Object[] valoresMaterias = materias.values().toArray();
+
+        int indice = 0;
+        while (indice < valoresMaterias.length) {
+            Materia materia = (Materia) valoresMaterias[indice];
+
+            if (materia.estaEnEspera(estudiante)) {
+                resultado.agregarAlFinal(materia);
+            }
+            indice++;
+        }
+
+        return resultado;
+    }
+
+    /** Vuelve a registrar el mismo objeto de estudiante en el mapa. */
+    public void restaurarEstudiante(Estudiante estudiante) {
+        if (estudiante == null) {
+            throw new IllegalArgumentException(
+                    "El estudiante no puede ser null."
+            );
+        }
+        if (estudiantes.containsKey(estudiante.getId())) {
+            throw new IllegalArgumentException(
+                    "Ya existe un estudiante con ID: " + estudiante.getId()
+            );
+        }
+
+        estudiantes.put(estudiante.getId(), estudiante);
+    }
+
     public Materia crearMateria(
             String codigo,
             String nombre,
@@ -143,12 +173,12 @@ public class SistemaAcademico {
             );
         }
 
-        Materia materia = new Materia(codigo, nombre, cuposMaximos, creditos);
+        Materia materia =
+                new Materia(codigo, nombre, cuposMaximos, creditos);
         materias.put(codigo, materia);
         return materia;
     }
 
-    /** Busca una materia por código. */
     public Materia buscarMateria(String codigo) {
         Materia materia = materias.get(codigo);
 
@@ -161,7 +191,6 @@ public class SistemaAcademico {
         return materia;
     }
 
-    /** Agrega un prerrequisito si no crea una dependencia circular. */
     public void agregarPrerrequisito(
             String codigoMateria,
             String codigoPrerrequisito
@@ -179,7 +208,6 @@ public class SistemaAcademico {
         materia.agregarPrerrequisito(prerrequisito);
     }
 
-    /** Imprime los prerrequisitos o informa que no hay ninguno. */
     public void mostrarPrerrequisitos(String codigoMateria) {
         Materia materia = buscarMateria(codigoMateria);
         ListaEnlazada<Materia> prerrequisitos =
@@ -191,8 +219,8 @@ public class SistemaAcademico {
         }
 
         System.out.println("Prerrequisitos de " + codigoMateria + ":");
-
         int indice = 0;
+
         while (indice < prerrequisitos.tamano()) {
             Materia prerrequisito = prerrequisitos.obtener(indice);
             System.out.println(
@@ -203,11 +231,6 @@ public class SistemaAcademico {
         }
     }
 
-    /**
-     * Inscribe al estudiante o lo deja esperando si no hay cupo.
-     *
-     * @return true si quedó inscrito; false si quedó en espera
-     */
     public boolean inscribir(String idEstudiante, String codigoMateria)
             throws EstudianteNoEncontradoException,
             PreRequisitoNoAprobadoException {
@@ -235,7 +258,6 @@ public class SistemaAcademico {
                 }
                 faltantes += prerrequisito.getCodigo();
             }
-
             indice++;
         }
 
@@ -254,7 +276,6 @@ public class SistemaAcademico {
         }
     }
 
-    /** Cancela una inscripción o espera y asigna el cupo a la primera persona en espera. */
     public Estudiante cancelarInscripcion(
             String idEstudiante,
             String codigoMateria
@@ -276,7 +297,7 @@ public class SistemaAcademico {
                     );
                 } catch (CupoLlenoException excepcion) {
                     throw new IllegalStateException(
-                            "No se pudo asignar el cupo que se acababa de liberar."
+                            "No se pudo asignar el cupo recién liberado."
                     );
                 }
             }
@@ -293,7 +314,6 @@ public class SistemaAcademico {
         );
     }
 
-    /** Imprime la cola de espera en orden de atención. */
     public void mostrarColaEspera(String codigoMateria) {
         Materia materia = buscarMateria(codigoMateria);
 
@@ -306,7 +326,6 @@ public class SistemaAcademico {
         while (indice < materia.cantidadEnEspera()) {
             Estudiante estudiante =
                     materia.getColaEspera().obtener(indice);
-
             System.out.println(
                     "Posicion " + (indice + 1) + ": "
                             + estudiante.getNombre()
@@ -319,7 +338,6 @@ public class SistemaAcademico {
         );
     }
 
-    /** Crea un aula si el nombre no existe y la capacidad es positiva. */
     public Aula crearAula(String nombre, int capacidad) {
         if (aulas.containsKey(nombre)) {
             throw new IllegalArgumentException(
@@ -337,7 +355,6 @@ public class SistemaAcademico {
         return aula;
     }
 
-    /** Busca un aula por su nombre. */
     public Aula buscarAula(String nombre) {
         Aula aula = aulas.get(nombre);
 
@@ -350,7 +367,6 @@ public class SistemaAcademico {
         return aula;
     }
 
-    /** Imprime las aulas en el orden de sus nombres. */
     public void listarAulas() {
         Object[] valores = aulas.values().toArray();
         int indice = 0;
@@ -362,7 +378,6 @@ public class SistemaAcademico {
         }
     }
 
-    /** Comprueba que la materia exista y delega la reserva al aula. */
     public void reservarHorario(
             String nombreAula,
             int dia,
@@ -375,7 +390,6 @@ public class SistemaAcademico {
         aula.reservar(dia, hora, duracion, codigoMateria);
     }
 
-    /** Delega la liberación del horario al aula. */
     public void liberarHorario(
             String nombreAula,
             int dia,
@@ -386,7 +400,6 @@ public class SistemaAcademico {
         aula.liberar(dia, hora, duracion);
     }
 
-    /** Delega la consulta de disponibilidad al aula. */
     public boolean consultarDisponibilidad(
             String nombreAula,
             int dia,
@@ -396,7 +409,6 @@ public class SistemaAcademico {
         return aula.consultarDisponibilidad(dia, hora);
     }
 
-    /** Agrega una facultad al arreglo de tamaño fijo. */
     public void agregarFacultad(Facultad facultad) {
         if (cantidadFacultades == facultades.length) {
             throw new IllegalStateException(
@@ -413,7 +425,6 @@ public class SistemaAcademico {
         cantidadFacultades++;
     }
 
-    /** Imprime las facultades guardadas. */
     public void listarFacultades() {
         int indice = 0;
         while (indice < cantidadFacultades) {
@@ -422,10 +433,6 @@ public class SistemaAcademico {
         }
     }
 
-    /**
-     * Revisa los prerrequisitos con una pila y guarda los códigos visitados.
-     * Devuelve true si desde inicio se puede llegar al código buscado.
-     */
     private boolean dependeDe(Materia inicio, String codigoBuscado) {
         Pila<Materia> pendientes = new Pila<>();
         ListaEnlazada<String> revisados = new ListaEnlazada<>();
@@ -440,7 +447,6 @@ public class SistemaAcademico {
 
             if (!revisados.contiene(actual.getCodigo())) {
                 revisados.agregarAlFinal(actual.getCodigo());
-
                 ListaEnlazada<Materia> prerrequisitos =
                         actual.getPrerrequisitos();
 
