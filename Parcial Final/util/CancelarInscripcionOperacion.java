@@ -1,8 +1,6 @@
 package util;
 
 import excepciones.EstudianteNoEncontradoException;
-import excepciones.HorarioConflictivoException;
-import excepciones.PreRequisitoNoAprobadoException;
 import excepciones.CupoLlenoException;
 import estructuras.ListaEnlazada;
 import modelo.Estudiante;
@@ -36,7 +34,6 @@ public class CancelarInscripcionOperacion extends Operacion {
             throws EstudianteNoEncontradoException {
         estudiante = sistema.buscarEstudiante(idEstudiante);
         materia = sistema.buscarMateria(codigoMateria);
-
         estabaInscrito = materia.estaInscrito(estudiante);
         posicionEspera = materia.posicionEnEspera(estudiante);
 
@@ -55,10 +52,10 @@ public class CancelarInscripcionOperacion extends Operacion {
 
         if (estabaInscrito) {
             if (estudiantePromovido != null) {
-                boolean seQuito =
+                boolean eliminado =
                         materia.quitarInscrito(estudiantePromovido);
 
-                if (!seQuito) {
+                if (!eliminado) {
                     throw new IllegalStateException(
                             "No se encontró al estudiante promovido."
                     );
@@ -79,6 +76,11 @@ public class CancelarInscripcionOperacion extends Operacion {
         }
 
         ejecutada = false;
+    }
+
+    /** Devuelve al estudiante promovido al cupo liberado, o null si no hubo. */
+    public Estudiante getEstudianteAsignado() {
+        return estudiantePromovido;
     }
 
     @Override
